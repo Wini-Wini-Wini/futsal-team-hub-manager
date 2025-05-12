@@ -7,7 +7,7 @@ import { Eye, EyeOff, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const ProfilePage: React.FC = () => {
-  const { user, updateUser } = useAuth();
+  const { user, profile, updateProfile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [formData, setFormData] = useState({
@@ -24,18 +24,18 @@ const ProfilePage: React.FC = () => {
     password: false
   });
   
-  const isCoach = user?.role === 'coach';
+  const isCoach = profile?.role === 'coach';
   
   useEffect(() => {
-    if (user) {
+    if (profile) {
       setFormData({
-        name: user.name || '',
-        email: user.email || '',
-        phone: user.phone || '',
+        name: profile.name || '',
+        email: profile.email || '',
+        phone: profile.phone || '',
         password: '************' // Placeholder for password
       });
     }
-  }, [user]);
+  }, [profile]);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -52,16 +52,16 @@ const ProfilePage: React.FC = () => {
     }));
     
     // If closing edit mode, reset the field value to original
-    if (isEditing[field] && user) {
+    if (isEditing[field] && profile) {
       setFormData(prev => ({
         ...prev,
-        [field]: field === 'password' ? '************' : (user[field as keyof typeof user] || '')
+        [field]: field === 'password' ? '************' : (profile[field as keyof typeof profile] || '')
       }));
     }
   };
   
   const handleSave = () => {
-    if (!user) return;
+    if (!user || !profile) return;
     
     // Validate email
     if (!/\S+@\S+\.\S+/.test(formData.email)) {
@@ -75,7 +75,7 @@ const ProfilePage: React.FC = () => {
     
     // In a real app, we would send password update to backend separately
     // For this demo, we'll just update the user info
-    updateUser({
+    updateProfile({
       name: formData.name,
       email: formData.email,
       phone: formData.phone
@@ -93,23 +93,23 @@ const ProfilePage: React.FC = () => {
   if (!isCoach) {
     return (
       <div className="flex-1 pb-20">
-        <Header title={user?.name || 'Perfil'} showBackButton={true} />
+        <Header title={profile?.name || 'Perfil'} showBackButton={true} />
         
         <div className="p-4">
           <div className="bg-white rounded-lg shadow p-4 mb-4">
             <h3 className="text-sm text-gray-500 mb-1">Nome:</h3>
-            <p className="font-medium">{user?.name}</p>
+            <p className="font-medium">{profile?.name}</p>
           </div>
           
           <div className="bg-white rounded-lg shadow p-4 mb-4">
             <h3 className="text-sm text-gray-500 mb-1">Email:</h3>
-            <p className="font-medium">{user?.email}</p>
+            <p className="font-medium">{profile?.email}</p>
           </div>
           
-          {user?.phone && (
+          {profile?.phone && (
             <div className="bg-white rounded-lg shadow p-4 mb-4">
               <h3 className="text-sm text-gray-500 mb-1">Telefone:</h3>
-              <p className="font-medium">{user?.phone}</p>
+              <p className="font-medium">{profile?.phone}</p>
             </div>
           )}
           

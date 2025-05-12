@@ -6,7 +6,7 @@ import Header from '../components/Header';
 import { LogOut, User } from 'lucide-react';
 
 const MenuPage: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { user, profile, logout } = useAuth();
   const navigate = useNavigate();
   
   const handleLogout = () => {
@@ -14,7 +14,7 @@ const MenuPage: React.FC = () => {
     navigate('/login');
   };
   
-  const isCoach = user?.role === 'coach';
+  const isCoach = profile?.role === 'coach';
 
   return (
     <div className="flex-1 pb-20">
@@ -28,7 +28,7 @@ const MenuPage: React.FC = () => {
               <User size={48} />
             </div>
             <h2 className="text-xl font-bold">
-              {user?.role === 'coach' ? 'Treinador(a)' : user?.name || 'Atleta'}
+              {profile?.role === 'coach' ? 'Treinador(a)' : profile?.name || 'Atleta'}
             </h2>
           </div>
           

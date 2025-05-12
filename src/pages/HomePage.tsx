@@ -6,7 +6,7 @@ import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const HomePage: React.FC = () => {
-  const { user } = useAuth();
+  const { profile } = useAuth();
   const { games } = useData();
   
   // Get next game
@@ -30,7 +30,7 @@ const HomePage: React.FC = () => {
     <div className="flex-1">
       <header className="bg-futsal-primary text-white p-4">
         <h1 className="text-xl font-bold">
-          Boa {getTimeOfDay()}, {user?.name?.split(' ')[0] || (user?.role === 'coach' ? 'Treinador(a)' : 'Atleta')}
+          Boa {getTimeOfDay()}, {profile?.name?.split(' ')[0] || (profile?.role === 'coach' ? 'Treinador(a)' : 'Atleta')}
         </h1>
       </header>
 

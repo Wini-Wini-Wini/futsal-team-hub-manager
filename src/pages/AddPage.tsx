@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 const AddPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const { addGame, addTraining, addAnnouncement } = useData();
   const { toast } = useToast();
   const tabs = ['Jogo', 'Treino', 'Aviso'];
@@ -42,7 +42,7 @@ const AddPage: React.FC = () => {
   });
   
   // Only coaches can add content
-  if (user?.role !== 'coach') {
+  if (profile?.role !== 'coach') {
     navigate('/');
     return null;
   }
