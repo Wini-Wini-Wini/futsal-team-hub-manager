@@ -140,7 +140,7 @@ const AddPage: React.FC = () => {
           title: announcementForm.title,
           message: announcementForm.message,
           priority: announcementForm.priority,
-          author: user?.name || 'Treinador',
+          author: profile?.name || 'Treinador',
           date: announcementForm.date,
           voting: announcementForm.voting
         });
