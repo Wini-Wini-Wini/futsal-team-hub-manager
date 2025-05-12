@@ -1,18 +1,27 @@
 
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { Eye, EyeOff } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [userType, setUserType] = useState<'coach' | 'player'>('player');
-  const { login } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/');
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,15 +35,21 @@ const LoginPage: React.FC = () => {
       return;
     }
     
+    setIsLoading(true);
+    
     try {
-      const success = await login(email, password, userType);
+      const { success, error } = await login(email, password);
       
       if (success) {
+        toast({
+          title: "Login realizado",
+          description: "Bem-vindo de volta!",
+        });
         navigate('/');
       } else {
         toast({
           title: "Erro de login",
-          description: "Email ou senha inválidos",
+          description: error || "Email ou senha inválidos",
           variant: "destructive"
         });
       }
@@ -45,6 +60,8 @@ const LoginPage: React.FC = () => {
         description: "Ocorreu um erro ao fazer login",
         variant: "destructive"
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -56,83 +73,70 @@ const LoginPage: React.FC = () => {
           <img 
             src="/lovable-uploads/a1b14023-9776-403e-8461-54f962bb9c6d.png" 
             alt="Female Futsal Logo" 
-            className="w-40 h-40 object-contain"
+            className="w-40 h-40 object-contain rounded-full border-4 border-white shadow-lg"
           />
         </div>
         
+        <h1 className="text-2xl font-bold text-white text-center mb-8">
+          Futsal Feminino<br />
+          <span className="text-futsal-accent">Gerenciamento de Time</span>
+        </h1>
+        
         {/* Login Form */}
-        <div className="w-full max-w-xs mt-12">
-          <div className="mb-4">
-            <label className="text-white text-lg font-semibold">Email:</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 rounded bg-white"
-              placeholder="seunome@gmail.com"
-            />
-          </div>
+        <div className="w-full max-w-xs mt-4 bg-white/10 backdrop-blur-sm rounded-lg p-6 shadow-xl border border-white/20">
+          <h2 className="text-xl font-bold text-white text-center mb-4">Login</h2>
           
-          <div className="mb-4">
-            <label className="text-white text-lg font-semibold">Senha:</label>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 rounded bg-white"
-                placeholder="Digite sua senha"
+          <form onSubmit={handleLogin}>
+            <div className="mb-4">
+              <Label className="text-white" htmlFor="email">Email:</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-2 rounded bg-white/80 border-0"
+                placeholder="seunome@gmail.com"
               />
-              <button 
-                type="button" 
-                className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
             </div>
-          </div>
+            
+            <div className="mb-6">
+              <Label className="text-white" htmlFor="password">Senha:</Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-2 rounded bg-white/80 border-0"
+                  placeholder="Digite sua senha"
+                />
+                <button 
+                  type="button" 
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+            </div>
 
-          <div className="mb-4">
-            <p className="text-white text-center">
-              <a href="#" className="underline">Esqueceu sua senha?</a>
-            </p>
-          </div>
-          
-          <div className="mb-4 flex gap-4">
-            <button
-              type="button"
-              className={`flex-1 py-2 px-4 rounded ${
-                userType === 'player' 
-                  ? 'bg-white text-futsal-primary font-bold' 
-                  : 'bg-futsal-secondary/50 text-white'
-              }`}
-              onClick={() => setUserType('player')}
+            <div className="mb-4">
+              <p className="text-white text-center text-sm">
+                <a href="#" className="underline">Esqueceu sua senha?</a>
+              </p>
+            </div>
+            
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full py-3 bg-futsal-accent text-black font-bold rounded text-lg uppercase hover:bg-futsal-accent/80"
             >
-              Aluna
-            </button>
-            <button
-              type="button"
-              className={`flex-1 py-2 px-4 rounded ${
-                userType === 'coach' 
-                  ? 'bg-white text-futsal-primary font-bold' 
-                  : 'bg-futsal-secondary/50 text-white'
-              }`}
-              onClick={() => setUserType('coach')}
-            >
-              Treinador
-            </button>
-          </div>
+              {isLoading ? "Entrando..." : "Entrar"}
+            </Button>
+          </form>
           
-          <button
-            onClick={handleLogin}
-            className="w-full py-3 bg-futsal-accent text-black font-bold rounded text-lg uppercase"
-          >
-            Entrar
-          </button>
-          
-          <p className="text-white text-center mt-4">
-            <a href="#" className="text-sm">Voltar à tela inicial</a>
+          <p className="text-white text-center mt-4 text-sm">
+            Não tem uma conta? <Link to="/register" className="underline text-futsal-accent">Registre-se</Link>
           </p>
         </div>
       </div>
