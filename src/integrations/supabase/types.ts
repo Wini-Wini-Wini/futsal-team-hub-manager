@@ -9,6 +9,87 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      announcements: {
+        Row: {
+          author: string
+          created_at: string
+          created_by: string
+          date: string
+          id: string
+          message: string
+          priority: string
+          read: string[] | null
+          title: string
+          votes: Json | null
+          voting: boolean | null
+        }
+        Insert: {
+          author: string
+          created_at?: string
+          created_by: string
+          date: string
+          id?: string
+          message: string
+          priority: string
+          read?: string[] | null
+          title: string
+          votes?: Json | null
+          voting?: boolean | null
+        }
+        Update: {
+          author?: string
+          created_at?: string
+          created_by?: string
+          date?: string
+          id?: string
+          message?: string
+          priority?: string
+          read?: string[] | null
+          title?: string
+          votes?: Json | null
+          voting?: boolean | null
+        }
+        Relationships: []
+      }
+      games: {
+        Row: {
+          away_score: number | null
+          created_at: string
+          created_by: string
+          date: string
+          home_score: number | null
+          id: string
+          location: string
+          opponent: string | null
+          time: string
+          uniform: string | null
+        }
+        Insert: {
+          away_score?: number | null
+          created_at?: string
+          created_by: string
+          date: string
+          home_score?: number | null
+          id?: string
+          location: string
+          opponent?: string | null
+          time: string
+          uniform?: string | null
+        }
+        Update: {
+          away_score?: number | null
+          created_at?: string
+          created_by?: string
+          date?: string
+          home_score?: number | null
+          id?: string
+          location?: string
+          opponent?: string | null
+          time?: string
+          uniform?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -36,6 +117,36 @@ export type Database = {
           phone?: string | null
           role?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      trainings: {
+        Row: {
+          created_at: string
+          created_by: string
+          date: string
+          id: string
+          location: string
+          time: string
+          uniform: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          date: string
+          id?: string
+          location: string
+          time: string
+          uniform?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          date?: string
+          id?: string
+          location?: string
+          time?: string
+          uniform?: string | null
         }
         Relationships: []
       }

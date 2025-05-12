@@ -15,6 +15,9 @@ import AnnouncementsPage from "./pages/AnnouncementsPage";
 import MenuPage from "./pages/MenuPage";
 import ProfilePage from "./pages/ProfilePage";
 import AddPage from "./pages/AddPage";
+import EditGamePage from "./pages/EditGamePage";
+import EditTrainingPage from "./pages/EditTrainingPage";
+import EditAnnouncementPage from "./pages/EditAnnouncementPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +41,9 @@ const App = () => (
                 <Route path="/menu" element={<MenuPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/add" element={<AddPage />} />
+                <Route path="/edit-game/:id" element={<EditGamePage />} />
+                <Route path="/edit-training/:id" element={<EditTrainingPage />} />
+                <Route path="/edit-announcement/:id" element={<EditAnnouncementPage />} />
               </Route>
               
               <Route path="/404" element={<NotFound />} />

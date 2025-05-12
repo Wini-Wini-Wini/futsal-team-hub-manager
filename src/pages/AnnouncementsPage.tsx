@@ -1,23 +1,25 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Header from '../components/Header';
 import TabBar from '../components/TabBar';
 import { useData, Announcement } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
 import { format, parseISO } from 'date-fns';
-import { Edit } from 'lucide-react';
+import { Edit, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 
 const AnnouncementsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
-  const { announcements, markAnnouncementAsRead, voteOnAnnouncement } = useData();
-  const { user } = useAuth();
+  const { announcements, markAnnouncementAsRead, voteOnAnnouncement, isLoading, fetchData } = useData();
+  const { user, profile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const tabs = ['Não lidos', 'Lidos'];
   
-  useEffect(() => {
+  React.useEffect(() => {
     // Mark announcements as seen when they are viewed
     if (user && activeTab === 0) {
       const unreadAnnouncements = getUnreadAnnouncements();
@@ -25,17 +27,17 @@ const AnnouncementsPage: React.FC = () => {
         markAnnouncementAsRead(announcement.id);
       });
     }
-  }, [activeTab]);
+  }, [activeTab, announcements]);
   
-  const isCoach = user?.role === 'coach';
+  const isCoach = profile?.role === 'coach';
   
   const getUnreadAnnouncements = () => {
-    if (!user) return [];
+    if (!user?.id) return [];
     return announcements.filter(ann => !ann.read.includes(user.id));
   };
   
   const getReadAnnouncements = () => {
-    if (!user) return [];
+    if (!user?.id) return [];
     return announcements.filter(ann => ann.read.includes(user.id));
   };
   
@@ -49,7 +51,7 @@ const AnnouncementsPage: React.FC = () => {
   };
   
   const getUserVote = (announcement: Announcement) => {
-    if (!user || !announcement.votes) return null;
+    if (!user?.id || !announcement.votes) return null;
     
     if (announcement.votes.yes.includes(user.id)) {
       return 'yes';
@@ -77,10 +79,21 @@ const AnnouncementsPage: React.FC = () => {
   const displayedAnnouncements = activeTab === 0 
     ? getUnreadAnnouncements() 
     : getReadAnnouncements();
+    
+  const handleRefresh = () => {
+    fetchData();
+  };
 
   return (
     <div className="flex-1 pb-20">
-      <Header title="Avisos" />
+      <Header 
+        title="Avisos"
+        rightElement={
+          <Button variant="ghost" size="icon" onClick={handleRefresh}>
+            <RefreshCw className={`h-5 w-5 text-white ${isLoading ? 'animate-spin' : ''}`} />
+          </Button>
+        }
+      />
       <TabBar 
         tabs={tabs} 
         activeTab={activeTab} 
@@ -88,62 +101,70 @@ const AnnouncementsPage: React.FC = () => {
       />
 
       <div className="p-4">
-        {displayedAnnouncements.length > 0 ? (
+        {isLoading ? (
+          <div className="flex justify-center items-center p-8">
+            <RefreshCw className="h-8 w-8 animate-spin text-futsal-primary" />
+          </div>
+        ) : displayedAnnouncements.length > 0 ? (
           <div className="space-y-4">
             {displayedAnnouncements.map((announcement) => {
               const userVote = getUserVote(announcement);
               
               return (
-                <div 
+                <Card 
                   key={announcement.id} 
-                  className="bg-white rounded-lg p-4 shadow-sm relative"
+                  className="relative overflow-hidden"
                 >
-                  <div className="flex justify-between">
-                    <h3 className={`font-bold ${getPriorityColor(announcement.priority)}`}>
-                      {announcement.title}
-                    </h3>
-                    <span className="text-sm text-gray-500">{announcement.author}</span>
-                  </div>
-                  
-                  <p className="mt-1 text-gray-700">{announcement.message}</p>
-                  
-                  {announcement.voting && (
-                    <div className="mt-3 flex items-center space-x-4">
-                      <span className="text-sm text-gray-600">Votação:</span>
-                      <div className="space-x-2">
-                        <button 
-                          className={`px-2 py-1 text-sm rounded ${
-                            userVote === 'yes' 
-                              ? 'bg-futsal-green text-white' 
-                              : 'bg-gray-100'
-                          }`}
-                          onClick={() => handleVote(announcement, 'yes')}
-                        >
-                          Sim
-                        </button>
-                        <button 
-                          className={`px-2 py-1 text-sm rounded ${
-                            userVote === 'no' 
-                              ? 'bg-futsal-red text-white' 
-                              : 'bg-gray-100'
-                          }`}
-                          onClick={() => handleVote(announcement, 'no')}
-                        >
-                          Não
-                        </button>
-                      </div>
+                  <CardContent className="p-4">
+                    <div className="flex justify-between">
+                      <h3 className={`font-bold ${getPriorityColor(announcement.priority)}`}>
+                        {announcement.title}
+                      </h3>
+                      <span className="text-sm text-gray-500">{announcement.author}</span>
                     </div>
-                  )}
-                  
-                  {isCoach && (
-                    <button 
-                      className="absolute bottom-2 right-2 text-futsal-primary"
-                      onClick={() => navigate(`/edit-announcement/${announcement.id}`)}
-                    >
-                      <Edit size={18} />
-                    </button>
-                  )}
-                </div>
+                    
+                    <p className="mt-1 text-gray-700">{announcement.message}</p>
+                    
+                    {announcement.voting && (
+                      <div className="mt-3 flex items-center space-x-4">
+                        <span className="text-sm text-gray-600">Votação:</span>
+                        <div className="space-x-2">
+                          <button 
+                            className={`px-2 py-1 text-sm rounded ${
+                              userVote === 'yes' 
+                                ? 'bg-futsal-green text-white' 
+                                : 'bg-gray-100'
+                            }`}
+                            onClick={() => handleVote(announcement, 'yes')}
+                          >
+                            Sim ({announcement.votes?.yes.length || 0})
+                          </button>
+                          <button 
+                            className={`px-2 py-1 text-sm rounded ${
+                              userVote === 'no' 
+                                ? 'bg-futsal-red text-white' 
+                                : 'bg-gray-100'
+                            }`}
+                            onClick={() => handleVote(announcement, 'no')}
+                          >
+                            Não ({announcement.votes?.no.length || 0})
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {isCoach && (
+                      <Button 
+                        variant="ghost" 
+                        size="icon"
+                        className="absolute bottom-2 right-2 text-futsal-primary"
+                        onClick={() => navigate(`/edit-announcement/${announcement.id}`)}
+                      >
+                        <Edit size={18} />
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
               );
             })}
           </div>

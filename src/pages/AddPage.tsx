@@ -6,9 +6,16 @@ import TabBar from '../components/TabBar';
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
 import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
+import { Loader2 } from 'lucide-react';
 
 const AddPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const { addGame, addTraining, addAnnouncement } = useData();
@@ -70,8 +77,11 @@ const AddPage: React.FC = () => {
     }
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     
     try {
       if (activeTab === 0) {
@@ -85,7 +95,7 @@ const AddPage: React.FC = () => {
           return;
         }
         
-        addGame({
+        await addGame({
           date: gameForm.date,
           location: gameForm.location,
           opponent: gameForm.opponent,
@@ -112,7 +122,7 @@ const AddPage: React.FC = () => {
           return;
         }
         
-        addTraining({
+        await addTraining({
           date: trainingForm.date,
           location: trainingForm.location,
           uniform: trainingForm.uniform,
@@ -136,7 +146,7 @@ const AddPage: React.FC = () => {
           return;
         }
         
-        addAnnouncement({
+        await addAnnouncement({
           title: announcementForm.title,
           message: announcementForm.message,
           priority: announcementForm.priority,
@@ -159,6 +169,8 @@ const AddPage: React.FC = () => {
         description: "Ocorreu um erro ao adicionar o item",
         variant: "destructive"
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -172,240 +184,255 @@ const AddPage: React.FC = () => {
       />
 
       <div className="p-4">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {activeTab === 0 && (
-            // Game Form
-            <>
-              <div className="space-y-2">
-                <label className="block text-sm font-medium">Data</label>
-                <input
-                  type="date"
-                  name="date"
-                  value={gameForm.date}
-                  onChange={handleGameChange}
-                  className="w-full border rounded-md px-3 py-2"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="block text-sm font-medium">Local</label>
-                <input
-                  type="text"
-                  name="location"
-                  value={gameForm.location}
-                  onChange={handleGameChange}
-                  className="w-full border rounded-md px-3 py-2"
-                  placeholder="Ginásio AABB"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="block text-sm font-medium">Adversário</label>
-                <input
-                  type="text"
-                  name="opponent"
-                  value={gameForm.opponent}
-                  onChange={handleGameChange}
-                  className="w-full border rounded-md px-3 py-2"
-                  placeholder="Nome do adversário"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="block text-sm font-medium">Uniforme</label>
-                <select
-                  name="uniform"
-                  value={gameForm.uniform}
-                  onChange={handleGameChange}
-                  className="w-full border rounded-md px-3 py-2"
-                >
-                  <option value="">Selecione o uniforme</option>
-                  <option value="A">Uniforme A</option>
-                  <option value="B">Uniforme B</option>
-                  <option value="C">Uniforme C</option>
-                </select>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="block text-sm font-medium">Horário</label>
-                <input
-                  type="time"
-                  name="time"
-                  value={gameForm.time}
-                  onChange={handleGameChange}
-                  className="w-full border rounded-md px-3 py-2"
-                  required
-                />
-              </div>
-            </>
-          )}
-          
-          {activeTab === 1 && (
-            // Training Form
-            <>
-              <div className="space-y-2">
-                <label className="block text-sm font-medium">Data</label>
-                <input
-                  type="date"
-                  name="date"
-                  value={trainingForm.date}
-                  onChange={handleTrainingChange}
-                  className="w-full border rounded-md px-3 py-2"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="block text-sm font-medium">Local</label>
-                <input
-                  type="text"
-                  name="location"
-                  value={trainingForm.location}
-                  onChange={handleTrainingChange}
-                  className="w-full border rounded-md px-3 py-2"
-                  placeholder="Quadra do Exponencial"
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="block text-sm font-medium">Uniforme</label>
-                <input
-                  type="text"
-                  name="uniform"
-                  value={trainingForm.uniform}
-                  onChange={handleTrainingChange}
-                  className="w-full border rounded-md px-3 py-2"
-                  placeholder="Uniforme de treino"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="block text-sm font-medium">Horário</label>
-                <input
-                  type="time"
-                  name="time"
-                  value={trainingForm.time}
-                  onChange={handleTrainingChange}
-                  className="w-full border rounded-md px-3 py-2"
-                  required
-                />
-              </div>
-            </>
-          )}
-          
-          {activeTab === 2 && (
-            // Announcement Form
-            <>
-              <div className="space-y-2">
-                <label className="block text-sm font-medium">Título</label>
-                <input
-                  type="text"
-                  name="title"
-                  value={announcementForm.title}
-                  onChange={handleAnnouncementChange}
-                  className="w-full border rounded-md px-3 py-2"
-                  placeholder="Digite o título do aviso..."
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <label className="block text-sm font-medium">Prioridade</label>
-                <div className="flex gap-4">
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="priority"
-                      value="high"
-                      checked={announcementForm.priority === 'high'}
-                      onChange={handleAnnouncementChange}
-                      className="mr-1"
+        <Card>
+          <CardContent className="pt-6">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {activeTab === 0 && (
+                // Game Form
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="date">Data</Label>
+                    <Input
+                      id="date"
+                      type="date"
+                      name="date"
+                      value={gameForm.date}
+                      onChange={handleGameChange}
+                      required
                     />
-                    <span className="w-4 h-4 bg-futsal-red rounded-sm inline-block mr-1"></span>
-                    Alta
-                  </label>
-                  
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="priority"
-                      value="medium"
-                      checked={announcementForm.priority === 'medium'}
-                      onChange={handleAnnouncementChange}
-                      className="mr-1"
-                    />
-                    <span className="w-4 h-4 bg-amber-500 rounded-sm inline-block mr-1"></span>
-                    Média
-                  </label>
-                  
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="priority"
-                      value="low"
-                      checked={announcementForm.priority === 'low'}
-                      onChange={handleAnnouncementChange}
-                      className="mr-1"
-                    />
-                    <span className="w-4 h-4 bg-futsal-green rounded-sm inline-block mr-1"></span>
-                    Baixa
-                  </label>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <label className="block text-sm font-medium">Data</label>
-                <input
-                  type="date"
-                  name="date"
-                  value={announcementForm.date}
-                  onChange={handleAnnouncementChange}
-                  className="w-full border rounded-md px-3 py-2"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex items-center">
-                  <label className="text-sm font-medium mr-2">Votação</label>
-                  <div className="flex items-center">
-                    <label className="flex items-center mr-4">
-                      <input
-                        type="checkbox"
-                        name="voting"
-                        checked={announcementForm.voting}
-                        onChange={handleAnnouncementChange}
-                        className="mr-1"
-                      />
-                      Sim
-                    </label>
                   </div>
-                </div>
-              </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="location">Local</Label>
+                    <Input
+                      id="location"
+                      type="text"
+                      name="location"
+                      value={gameForm.location}
+                      onChange={handleGameChange}
+                      placeholder="Ginásio AABB"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="opponent">Adversário</Label>
+                    <Input
+                      id="opponent"
+                      type="text"
+                      name="opponent"
+                      value={gameForm.opponent}
+                      onChange={handleGameChange}
+                      placeholder="Nome do adversário"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="uniform">Uniforme</Label>
+                    <select
+                      id="uniform"
+                      name="uniform"
+                      value={gameForm.uniform}
+                      onChange={handleGameChange}
+                      className="w-full border rounded-md px-3 py-2"
+                    >
+                      <option value="">Selecione o uniforme</option>
+                      <option value="A">Uniforme A</option>
+                      <option value="B">Uniforme B</option>
+                      <option value="C">Uniforme C</option>
+                    </select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="time">Horário</Label>
+                    <Input
+                      id="time"
+                      type="time"
+                      name="time"
+                      value={gameForm.time}
+                      onChange={handleGameChange}
+                      required
+                    />
+                  </div>
+                </>
+              )}
               
-              <div className="space-y-2">
-                <label className="block text-sm font-medium">Mensagem</label>
-                <textarea
-                  name="message"
-                  value={announcementForm.message}
-                  onChange={handleAnnouncementChange}
-                  className="w-full border rounded-md px-3 py-2 h-32"
-                  placeholder="Digite uma mensagem..."
-                  required
-                />
-              </div>
-            </>
-          )}
-          
-          <button
-            type="submit"
-            className="w-full py-3 mt-6 bg-futsal-accent text-black font-bold rounded-md"
-          >
-            ADICIONAR
-          </button>
-        </form>
+              {activeTab === 1 && (
+                // Training Form
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="date">Data</Label>
+                    <Input
+                      id="date"
+                      type="date"
+                      name="date"
+                      value={trainingForm.date}
+                      onChange={handleTrainingChange}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="location">Local</Label>
+                    <Input
+                      id="location"
+                      type="text"
+                      name="location"
+                      value={trainingForm.location}
+                      onChange={handleTrainingChange}
+                      placeholder="Quadra do Exponencial"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="uniform">Uniforme</Label>
+                    <Input
+                      id="uniform"
+                      type="text"
+                      name="uniform"
+                      value={trainingForm.uniform}
+                      onChange={handleTrainingChange}
+                      placeholder="Uniforme de treino"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="time">Horário</Label>
+                    <Input
+                      id="time"
+                      type="time"
+                      name="time"
+                      value={trainingForm.time}
+                      onChange={handleTrainingChange}
+                      required
+                    />
+                  </div>
+                </>
+              )}
+              
+              {activeTab === 2 && (
+                // Announcement Form
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Título</Label>
+                    <Input
+                      id="title"
+                      type="text"
+                      name="title"
+                      value={announcementForm.title}
+                      onChange={handleAnnouncementChange}
+                      placeholder="Digite o título do aviso..."
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Prioridade</Label>
+                    <div className="flex gap-4">
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="priority"
+                          value="high"
+                          checked={announcementForm.priority === 'high'}
+                          onChange={handleAnnouncementChange}
+                          className="mr-1"
+                        />
+                        <span className="w-4 h-4 bg-futsal-red rounded-sm inline-block mr-1"></span>
+                        Alta
+                      </label>
+                      
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="priority"
+                          value="medium"
+                          checked={announcementForm.priority === 'medium'}
+                          onChange={handleAnnouncementChange}
+                          className="mr-1"
+                        />
+                        <span className="w-4 h-4 bg-amber-500 rounded-sm inline-block mr-1"></span>
+                        Média
+                      </label>
+                      
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="priority"
+                          value="low"
+                          checked={announcementForm.priority === 'low'}
+                          onChange={handleAnnouncementChange}
+                          className="mr-1"
+                        />
+                        <span className="w-4 h-4 bg-futsal-green rounded-sm inline-block mr-1"></span>
+                        Baixa
+                      </label>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="date">Data</Label>
+                    <Input
+                      id="date"
+                      type="date"
+                      name="date"
+                      value={announcementForm.date}
+                      onChange={handleAnnouncementChange}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="flex items-center">
+                      <Label htmlFor="voting" className="mr-2">Votação</Label>
+                      <div className="flex items-center">
+                        <label className="flex items-center mr-4">
+                          <input
+                            id="voting"
+                            type="checkbox"
+                            name="voting"
+                            checked={announcementForm.voting}
+                            onChange={handleAnnouncementChange}
+                            className="mr-1"
+                          />
+                          Sim
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="message">Mensagem</Label>
+                    <Textarea
+                      id="message"
+                      name="message"
+                      value={announcementForm.message}
+                      onChange={handleAnnouncementChange}
+                      className="h-32"
+                      placeholder="Digite uma mensagem..."
+                      required
+                    />
+                  </div>
+                </>
+              )}
+              
+              <Button
+                type="submit"
+                className="w-full mt-6 bg-futsal-accent text-black font-bold"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    PROCESSANDO
+                  </>
+                ) : (
+                  'ADICIONAR'
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
