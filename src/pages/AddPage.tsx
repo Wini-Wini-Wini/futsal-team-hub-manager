@@ -17,6 +17,7 @@ const AddPage: React.FC = () => {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const { user, profile } = useAuth();
   const { addGame, addTraining, addAnnouncement } = useData();
@@ -61,20 +62,32 @@ const AddPage: React.FC = () => {
     date: new Date().toISOString().split('T')[0]
   });
   
-  // Only coaches can add content
+  // Check profile loading and permissions
   useEffect(() => {
-    if (profile?.role !== 'coach') {
+    if (profile === undefined) {
+      // Profile is still loading
+      setIsLoading(true);
+    } else if (profile === null) {
+      // User is not logged in
       navigate('/');
+      toast({
+        title: "Acesso negado",
+        description: "Você precisa estar logado para acessar esta página",
+        variant: "destructive"
+      });
+    } else if (profile.role !== 'coach') {
+      // User is not a coach
+      navigate('/');
+      toast({
+        title: "Acesso negado",
+        description: "Apenas treinadores podem adicionar conteúdo",
+        variant: "destructive"
+      });
+    } else {
+      // User is a coach and can access this page
+      setIsLoading(false);
     }
-  }, [profile, navigate]);
-  
-  if (!profile) {
-    return null; // Wait for profile to load
-  }
-  
-  if (profile?.role !== 'coach') {
-    return null; // Extra safety check
-  }
+  }, [profile, navigate, toast]);
   
   const handleGameChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -196,6 +209,22 @@ const AddPage: React.FC = () => {
       setIsSubmitting(false);
     }
   };
+
+  // Show loading state while checking permissions
+  if (isLoading) {
+    return (
+      <div className="flex-1 pb-20">
+        <Header 
+          title="Carregando..." 
+          showBackButton={true}
+          showHomeButton={true}
+        />
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-futsal-primary" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 pb-20">

@@ -36,15 +36,16 @@ export const Layout: React.FC = () => {
     
     if (location.pathname === '/agenda') {
       shouldShow = true;
-      // Para a tela de agenda, vamos usar o tab=0 (Jogo)
-      addAction = '/add?tab=0';
+      // Determine which tab to open based on context
+      // For agenda page, show a context menu or default to adding a game
+      addAction = '/add?tab=0'; // Default to game (tab 0)
     } else if (location.pathname === '/announcements') {
       shouldShow = true;
-      // Para a tela de avisos, usamos o tab=2 (Aviso)
-      addAction = '/add?tab=2';
+      // For announcements page, directly open announcement tab
+      addAction = '/add?tab=2'; // Announcement (tab 2)
     } else if (location.pathname === '/') {
       shouldShow = true;
-      // Na tela home, deixamos o comportamento padrão
+      // On home page, default to whatever makes sense
       addAction = '/add';
     } else {
       shouldShow = false;
@@ -55,7 +56,10 @@ export const Layout: React.FC = () => {
     return (
       <button 
         className="fixed bottom-20 right-4 w-14 h-14 rounded-full bg-futsal-primary text-white text-3xl flex items-center justify-center shadow-lg"
-        onClick={() => navigate(addAction)}
+        onClick={() => {
+          // Ensure we navigate with a fresh state to avoid any caching issues
+          navigate(addAction, { replace: false });
+        }}
       >
         <Plus size={24} />
       </button>
