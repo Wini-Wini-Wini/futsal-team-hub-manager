@@ -1,11 +1,12 @@
 
 import React from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Home, Calendar, AlertTriangle, Menu, Plus } from 'lucide-react';
 
 export const Layout: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, isAuthenticated, profile } = useAuth();
 
   // Redirect to login if not authenticated
@@ -24,6 +25,37 @@ export const Layout: React.FC = () => {
   };
 
   const isCoach = profile?.role === 'coach';
+  
+  // Determine add button visibility and action based on current route
+  const renderAddButton = () => {
+    if (!isCoach) return null;
+    
+    // Different add behaviors based on current route
+    let addAction = '';
+    let shouldShow = false;
+    
+    if (location.pathname === '/agenda' || location.pathname === '/') {
+      shouldShow = true;
+      addAction = '/add';
+    } else if (location.pathname === '/announcements') {
+      shouldShow = true;
+      // Navigate directly to add announcement tab
+      addAction = '/add?tab=2'; // Tab index 2 is for announcements
+    } else {
+      shouldShow = false;
+    }
+    
+    if (!shouldShow) return null;
+    
+    return (
+      <button 
+        className="fixed bottom-20 right-4 w-14 h-14 rounded-full bg-futsal-primary text-white text-3xl flex items-center justify-center shadow-lg"
+        onClick={() => navigate(addAction)}
+      >
+        <Plus size={24} />
+      </button>
+    );
+  };
 
   return (
     <div className="app-container bg-gradient-to-b from-futsal-light to-futsal-secondary flex flex-col">
@@ -52,15 +84,8 @@ export const Layout: React.FC = () => {
         </NavLink>
       </nav>
       
-      {/* Add Button (visible for coaches only) */}
-      {isCoach && (
-        <button 
-          className="fixed bottom-20 right-4 w-14 h-14 rounded-full bg-futsal-primary text-white text-3xl flex items-center justify-center shadow-lg"
-          onClick={() => navigate('/add')}
-        >
-          <Plus size={24} />
-        </button>
-      )}
+      {/* Context-specific Add Button */}
+      {renderAddButton()}
     </div>
   );
 };

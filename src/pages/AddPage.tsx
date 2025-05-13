@@ -1,6 +1,5 @@
-
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Header from '../components/Header';
 import TabBar from '../components/TabBar';
 import { useAuth } from '../contexts/AuthContext';
@@ -14,6 +13,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 
 const AddPage: React.FC = () => {
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
@@ -21,6 +21,18 @@ const AddPage: React.FC = () => {
   const { addGame, addTraining, addAnnouncement } = useData();
   const { toast } = useToast();
   const tabs = ['Jogo', 'Treino', 'Aviso'];
+  
+  // Parse tab from URL query parameter
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tabParam = params.get('tab');
+    if (tabParam) {
+      const tabIndex = parseInt(tabParam);
+      if (!isNaN(tabIndex) && tabIndex >= 0 && tabIndex < tabs.length) {
+        setActiveTab(tabIndex);
+      }
+    }
+  }, [location]);
   
   // Game form state
   const [gameForm, setGameForm] = useState({
