@@ -2,11 +2,11 @@
 import React from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Home, Calendar, AlertTriangle, Menu } from 'lucide-react';
+import { Home, Calendar, AlertTriangle, Menu, Plus } from 'lucide-react';
 
 export const Layout: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, profile } = useAuth();
 
   // Redirect to login if not authenticated
   React.useEffect(() => {
@@ -22,6 +22,8 @@ export const Layout: React.FC = () => {
       isActive ? 'text-futsal-primary font-semibold' : 'text-gray-600'
     }`;
   };
+
+  const isCoach = profile?.role === 'coach';
 
   return (
     <div className="app-container bg-gradient-to-b from-futsal-light to-futsal-secondary flex flex-col">
@@ -51,12 +53,12 @@ export const Layout: React.FC = () => {
       </nav>
       
       {/* Add Button (visible for coaches only) */}
-      {user && user.role === 'coach' && (
+      {isCoach && (
         <button 
           className="fixed bottom-20 right-4 w-14 h-14 rounded-full bg-futsal-primary text-white text-3xl flex items-center justify-center shadow-lg"
           onClick={() => navigate('/add')}
         >
-          +
+          <Plus size={24} />
         </button>
       )}
     </div>

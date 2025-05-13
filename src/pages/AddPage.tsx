@@ -92,6 +92,7 @@ const AddPage: React.FC = () => {
             description: "Por favor, preencha todos os campos obrigatórios",
             variant: "destructive"
           });
+          setIsSubmitting(false);
           return;
         }
         
@@ -100,9 +101,7 @@ const AddPage: React.FC = () => {
           location: gameForm.location,
           opponent: gameForm.opponent,
           uniform: gameForm.uniform,
-          time: gameForm.time,
-          homeScore: 0,
-          awayScore: 0
+          time: gameForm.time
         });
         
         toast({
@@ -119,6 +118,7 @@ const AddPage: React.FC = () => {
             description: "Por favor, preencha todos os campos obrigatórios",
             variant: "destructive"
           });
+          setIsSubmitting(false);
           return;
         }
         
@@ -143,6 +143,7 @@ const AddPage: React.FC = () => {
             description: "Por favor, preencha todos os campos obrigatórios",
             variant: "destructive"
           });
+          setIsSubmitting(false);
           return;
         }
         
