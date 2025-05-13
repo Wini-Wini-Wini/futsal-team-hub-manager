@@ -7,10 +7,13 @@ import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { UserRole } from '../contexts/AuthContext';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState<UserRole>('player');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { login, isAuthenticated } = useAuth();
@@ -38,12 +41,12 @@ const LoginPage: React.FC = () => {
     setIsLoading(true);
     
     try {
-      const { success, error } = await login(email, password);
+      const { success, error } = await login(email, password, role);
       
       if (success) {
         toast({
           title: "Login realizado",
-          description: "Bem-vindo de volta!",
+          description: `Bem-vindo de volta, ${role === 'coach' ? 'Treinador(a)' : 'Atleta'}!`,
         });
         navigate('/');
       } else {
@@ -99,7 +102,7 @@ const LoginPage: React.FC = () => {
               />
             </div>
             
-            <div className="mb-6">
+            <div className="mb-4">
               <Label className="text-white" htmlFor="password">Senha:</Label>
               <div className="relative">
                 <Input
@@ -118,6 +121,24 @@ const LoginPage: React.FC = () => {
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
+            </div>
+
+            <div className="mb-4">
+              <Label className="text-white mb-2 block">Entrar como:</Label>
+              <RadioGroup 
+                value={role} 
+                onValueChange={(value) => setRole(value as UserRole)}
+                className="flex space-x-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="player" id="player" />
+                  <Label htmlFor="player" className="text-white">Atleta</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="coach" id="coach" />
+                  <Label htmlFor="coach" className="text-white">Treinador(a)</Label>
+                </div>
+              </RadioGroup>
             </div>
 
             <div className="mb-4">

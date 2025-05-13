@@ -21,7 +21,7 @@ interface AuthContextType {
   session: Session | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  login: (email: string, password: string, role?: UserRole) => Promise<{ success: boolean; error?: string }>;
   register: (email: string, password: string, name: string, role: UserRole, phone?: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
   updateProfile: (data: Partial<UserProfile>) => Promise<{ success: boolean; error?: string }>;
@@ -103,7 +103,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, role?: UserRole) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -112,6 +112,24 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
 
       if (error) {
         return { success: false, error: error.message };
+      }
+
+      // If a role is specified and user is logged in, update their role
+      if (role && data.user) {
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ role })
+          .eq('id', data.user.id);
+
+        if (updateError) {
+          console.error('Error updating role:', updateError);
+          // We still consider the login successful even if role update fails
+        }
+        
+        // Update local profile with new role
+        if (profile) {
+          setProfile({ ...profile, role });
+        }
       }
 
       return { success: true };

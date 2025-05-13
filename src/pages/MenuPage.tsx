@@ -28,8 +28,11 @@ const MenuPage: React.FC = () => {
               <User size={48} />
             </div>
             <h2 className="text-xl font-bold">
-              {profile?.role === 'coach' ? 'Treinador(a)' : profile?.name || 'Atleta'}
+              {profile?.name || 'Usuário'}
             </h2>
+            <p className="text-white/80 mt-1">
+              {profile?.role === 'coach' ? 'Treinador(a)' : 'Atleta'}
+            </p>
           </div>
           
           {/* Menu Options */}
