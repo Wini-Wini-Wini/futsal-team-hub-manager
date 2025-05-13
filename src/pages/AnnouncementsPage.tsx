@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import TabBar from '../components/TabBar';
 import { useData, Announcement } from '../contexts/DataContext';
@@ -18,16 +18,30 @@ const AnnouncementsPage: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const tabs = ['Não lidos', 'Lidos'];
+  const [hasVisitedPage, setHasVisitedPage] = useState(false);
   
-  React.useEffect(() => {
-    // Mark announcements as seen when they are viewed
-    if (user && activeTab === 0) {
+  // Mark as visited after a delay
+  useEffect(() => {
+    if (activeTab === 0) {
+      setHasVisitedPage(false);
+      // Definir um temporizador mais longo (15 segundos) antes de marcar como lido
+      const timer = setTimeout(() => {
+        setHasVisitedPage(true);
+      }, 15000); // 15 segundos
+      
+      return () => clearTimeout(timer);
+    }
+  }, [activeTab]);
+  
+  // Mark announcements as read only after the delay has passed
+  useEffect(() => {
+    if (user && activeTab === 0 && hasVisitedPage) {
       const unreadAnnouncements = getUnreadAnnouncements();
       unreadAnnouncements.forEach(announcement => {
         markAnnouncementAsRead(announcement.id);
       });
     }
-  }, [activeTab, announcements]);
+  }, [hasVisitedPage, activeTab, user]);
   
   const isCoach = profile?.role === 'coach';
   
@@ -88,6 +102,7 @@ const AnnouncementsPage: React.FC = () => {
     <div className="flex-1 pb-20">
       <Header 
         title="Avisos"
+        showHomeButton={true}
         rightElement={
           <Button variant="ghost" size="icon" onClick={handleRefresh}>
             <RefreshCw className={`h-5 w-5 text-white ${isLoading ? 'animate-spin' : ''}`} />

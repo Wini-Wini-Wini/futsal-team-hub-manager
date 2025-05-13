@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Header from '../components/Header';
@@ -32,7 +33,7 @@ const AddPage: React.FC = () => {
         setActiveTab(tabIndex);
       }
     }
-  }, [location]);
+  }, [location, tabs.length]);
   
   // Game form state
   const [gameForm, setGameForm] = useState({
@@ -61,9 +62,18 @@ const AddPage: React.FC = () => {
   });
   
   // Only coaches can add content
+  useEffect(() => {
+    if (profile?.role !== 'coach') {
+      navigate('/');
+    }
+  }, [profile, navigate]);
+  
+  if (!profile) {
+    return null; // Wait for profile to load
+  }
+  
   if (profile?.role !== 'coach') {
-    navigate('/');
-    return null;
+    return null; // Extra safety check
   }
   
   const handleGameChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -189,7 +199,11 @@ const AddPage: React.FC = () => {
 
   return (
     <div className="flex-1 pb-20">
-      <Header title={`Novo ${tabs[activeTab].toLowerCase()}`} showBackButton={true} />
+      <Header 
+        title={`Novo ${tabs[activeTab].toLowerCase()}`} 
+        showBackButton={true}
+        showHomeButton={true}
+      />
       <TabBar 
         tabs={tabs} 
         activeTab={activeTab} 

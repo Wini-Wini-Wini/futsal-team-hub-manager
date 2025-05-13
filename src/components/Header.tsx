@@ -1,17 +1,20 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Home } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface HeaderProps {
   title: string;
   showBackButton?: boolean;
+  showHomeButton?: boolean;
   rightElement?: React.ReactNode;
 }
 
 const Header: React.FC<HeaderProps> = ({ 
   title, 
   showBackButton = false,
+  showHomeButton = false,
   rightElement
 }) => {
   const navigate = useNavigate();
@@ -22,9 +25,22 @@ const Header: React.FC<HeaderProps> = ({
         <button 
           onClick={() => navigate(-1)}
           className="mr-4"
+          aria-label="Voltar"
         >
           <ArrowLeft size={24} />
         </button>
+      )}
+      
+      {showHomeButton && (
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => navigate('/')}
+          className="mr-4 text-white hover:text-white hover:bg-futsal-primary/80"
+          aria-label="Ir para Home"
+        >
+          <Home size={24} />
+        </Button>
       )}
       
       <h1 className="text-xl font-bold flex-grow text-center">

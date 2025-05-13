@@ -34,13 +34,18 @@ export const Layout: React.FC = () => {
     let addAction = '';
     let shouldShow = false;
     
-    if (location.pathname === '/agenda' || location.pathname === '/') {
+    if (location.pathname === '/agenda') {
       shouldShow = true;
-      addAction = '/add';
+      // Para a tela de agenda, vamos usar o tab=0 (Jogo)
+      addAction = '/add?tab=0';
     } else if (location.pathname === '/announcements') {
       shouldShow = true;
-      // Navigate directly to add announcement tab
-      addAction = '/add?tab=2'; // Tab index 2 is for announcements
+      // Para a tela de avisos, usamos o tab=2 (Aviso)
+      addAction = '/add?tab=2';
+    } else if (location.pathname === '/') {
+      shouldShow = true;
+      // Na tela home, deixamos o comportamento padrão
+      addAction = '/add';
     } else {
       shouldShow = false;
     }

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -32,10 +31,11 @@ const EditGamePage: React.FC = () => {
   });
   
   // Only coaches can edit content
-  if (profile?.role !== 'coach') {
-    navigate('/');
-    return null;
-  }
+  useEffect(() => {
+    if (profile?.role !== 'coach') {
+      navigate('/');
+    }
+  }, [profile, navigate]);
   
   // Load game data
   useEffect(() => {
@@ -62,7 +62,11 @@ const EditGamePage: React.FC = () => {
         navigate('/agenda');
       }
     }
-  }, [id, games]);
+  }, [id, games, toast, navigate]);
+  
+  if (!profile || profile.role !== 'coach') {
+    return null;
+  }
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
@@ -176,7 +180,11 @@ const EditGamePage: React.FC = () => {
 
   return (
     <div className="flex-1 pb-20">
-      <Header title="Editar Jogo" showBackButton={true} />
+      <Header 
+        title="Editar Jogo" 
+        showBackButton={true}
+        showHomeButton={true} 
+      />
       
       <div className="p-4">
         <Card>
