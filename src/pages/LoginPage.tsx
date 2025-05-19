@@ -73,7 +73,7 @@ const LoginPage: React.FC = () => {
       <div className="flex-1 flex flex-col items-center justify-center p-8">
         <div className="flex flex-col items-center mb-6">
           <img 
-            src="/lovable-uploads/43cd7126-53af-4276-b2cb-341f01b2d453.png" 
+            src="/lovable-uploads/250bc0ef-a336-4057-a13f-f5b72f197077.png" 
             alt="Female Futsal Logo" 
             className="w-40 h-40 object-contain mx-auto"
           />
@@ -107,7 +107,7 @@ const LoginPage: React.FC = () => {
       <div className="flex-1 flex flex-col items-center p-8">
         <div className="flex flex-col items-center mb-6">
           <img 
-            src="/lovable-uploads/43cd7126-53af-4276-b2cb-341f01b2d453.png" 
+            src="/lovable-uploads/250bc0ef-a336-4057-a13f-f5b72f197077.png" 
             alt="Female Futsal Logo" 
             className="w-40 h-40 object-contain mx-auto"
           />
@@ -118,7 +118,7 @@ const LoginPage: React.FC = () => {
         </div>
         
         <form onSubmit={handleLogin} className="w-full mt-4">
-          <div className="mb-4 bg-[#9b87f5] rounded-md p-4">
+          <div className="mb-4 bg-[#745AA9] rounded-md p-4">
             <label className="text-white text-lg" htmlFor="email">Email:</label>
             <Input
               id="email"
