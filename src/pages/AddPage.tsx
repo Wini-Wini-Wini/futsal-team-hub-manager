@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -20,25 +21,35 @@ import { CalendarIcon, Loader2 } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import Header from '@/components/Header';
 
+// Updated interface to match Game type in DataContext
 interface GameData {
   date: Date | undefined;
   time: string;
   opponent: string;
   location: string;
-  notes: string;
+  uniform: string; // Added missing property
+  notes?: string; // Optional notes that can be stored elsewhere
 }
 
+// Updated interface to match Training type in DataContext
 interface TrainingData {
   date: Date | undefined;
   time: string;
-  focus: string;
-  drills: string;
-  notes: string;
+  location: string; // Added missing property
+  uniform: string; // Added missing property
+  focus?: string; // Optional focus that can be stored elsewhere
+  drills?: string; // Optional drills that can be stored elsewhere
+  notes?: string; // Optional notes that can be stored elsewhere
 }
 
+// Updated interface to match Announcement type in DataContext
 interface AnnouncementData {
   title: string;
-  content: string;
+  content: string; // This will map to message
+  date: string; // Added required property
+  priority: 'high' | 'medium' | 'low'; // Added required property with correct type
+  author: string; // Added required property
+  voting?: boolean; // Optional voting property
 }
 
 const AddPage = () => {
@@ -55,28 +66,35 @@ const AddPage = () => {
   const { addGame, addTraining, addAnnouncement } = useData();
   const { toast } = useToast();
   
-  // Form state for Game
+  // Form state for Game with default values
   const [gameData, setGameData] = useState<GameData>({
     date: undefined,
     time: '',
     opponent: '',
     location: '',
+    uniform: '', // Initialize with empty string
     notes: '',
   });
   
-  // Form state for Training
+  // Form state for Training with default values
   const [trainingData, setTrainingData] = useState<TrainingData>({
     date: undefined,
     time: '',
+    location: '', // Initialize with empty string
+    uniform: '', // Initialize with empty string
     focus: '',
     drills: '',
     notes: '',
   });
   
-  // Form state for Announcement
+  // Form state for Announcement with default values
   const [announcementData, setAnnouncementData] = useState<AnnouncementData>({
     title: '',
-    content: '',
+    content: '', // Will map to message
+    date: new Date().toISOString().split('T')[0], // Current date in ISO format
+    priority: 'medium', // Default priority
+    author: profile?.name || 'Unknown', // Default author or Unknown
+    voting: false,
   });
   
   // Reset functions for each form
@@ -86,6 +104,7 @@ const AddPage = () => {
       time: '',
       opponent: '',
       location: '',
+      uniform: '',
       notes: '',
     });
   };
@@ -94,6 +113,8 @@ const AddPage = () => {
     setTrainingData({
       date: undefined,
       time: '',
+      location: '',
+      uniform: '',
       focus: '',
       drills: '',
       notes: '',
@@ -104,6 +125,10 @@ const AddPage = () => {
     setAnnouncementData({
       title: '',
       content: '',
+      date: new Date().toISOString().split('T')[0],
+      priority: 'medium',
+      author: profile?.name || 'Unknown',
+      voting: false,
     });
   };
   
@@ -158,6 +183,11 @@ const AddPage = () => {
       } else {
         // User is a coach and can access this page
         setIsLoading(false);
+        // Update author if profile is loaded
+        setAnnouncementData(prev => ({
+          ...prev,
+          author: profile.name
+        }));
       }
     }, 500); // Give extra time for profile to load
     
@@ -169,8 +199,27 @@ const AddPage = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
+    if (!gameData.date) {
+      toast({
+        title: "Erro",
+        description: "Por favor, selecione uma data",
+        variant: "destructive"
+      });
+      setIsSubmitting(false);
+      return;
+    }
+    
     try {
-      await addGame(gameData);
+      // Convert GameData to match the expected Game type
+      const gameToAdd = {
+        date: gameData.date.toISOString().split('T')[0],
+        time: gameData.time,
+        opponent: gameData.opponent,
+        location: gameData.location,
+        uniform: gameData.uniform
+      };
+      
+      await addGame(gameToAdd);
       toast({
         title: "Sucesso!",
         description: "Jogo adicionado com sucesso",
@@ -193,8 +242,26 @@ const AddPage = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
+    if (!trainingData.date) {
+      toast({
+        title: "Erro",
+        description: "Por favor, selecione uma data",
+        variant: "destructive"
+      });
+      setIsSubmitting(false);
+      return;
+    }
+    
     try {
-      await addTraining(trainingData);
+      // Convert TrainingData to match the expected Training type
+      const trainingToAdd = {
+        date: trainingData.date.toISOString().split('T')[0],
+        time: trainingData.time,
+        location: trainingData.location,
+        uniform: trainingData.uniform
+      };
+      
+      await addTraining(trainingToAdd);
       toast({
         title: "Sucesso!",
         description: "Treino adicionado com sucesso",
@@ -218,7 +285,17 @@ const AddPage = () => {
     setIsSubmitting(true);
     
     try {
-      await addAnnouncement(announcementData);
+      // Convert AnnouncementData to match the expected Announcement type
+      const announcementToAdd = {
+        title: announcementData.title,
+        message: announcementData.content, // Map content to message
+        date: announcementData.date,
+        priority: announcementData.priority,
+        author: announcementData.author,
+        voting: announcementData.voting
+      };
+      
+      await addAnnouncement(announcementToAdd);
       toast({
         title: "Sucesso!",
         description: "Aviso adicionado com sucesso",
@@ -269,7 +346,7 @@ const AddPage = () => {
         </TabsList>
         
         {/* Game Tab */}
-        <TabsContent value="0" className="mt-4">
+        <TabsContent value="0" className="mt-4 px-4">
           <form onSubmit={handleGameSubmit} className="flex flex-col gap-4">
             <div>
               <Label htmlFor="game-date">Data</Label>
@@ -295,9 +372,6 @@ const AddPage = () => {
                     mode="single"
                     selected={gameData.date}
                     onSelect={(date) => setGameData(prev => ({...prev, date: date}))}
-                    disabled={(date) =>
-                      date > new Date()
-                    }
                     initialFocus
                   />
                 </PopoverContent>
@@ -341,6 +415,18 @@ const AddPage = () => {
             </div>
             
             <div>
+              <Label htmlFor="game-uniform">Uniforme</Label>
+              <Input 
+                type="text" 
+                id="game-uniform" 
+                name="uniform"
+                value={gameData.uniform}
+                onChange={handleGameChange}
+                placeholder="Uniforme para o jogo" 
+              />
+            </div>
+            
+            <div>
               <Label htmlFor="game-notes">Notas</Label>
               <Textarea
                 id="game-notes"
@@ -358,7 +444,7 @@ const AddPage = () => {
         </TabsContent>
         
         {/* Training Tab */}
-        <TabsContent value="1" className="mt-4">
+        <TabsContent value="1" className="mt-4 px-4">
           <form onSubmit={handleTrainingSubmit} className="flex flex-col gap-4">
             <div>
               <Label htmlFor="training-date">Data</Label>
@@ -384,9 +470,6 @@ const AddPage = () => {
                     mode="single"
                     selected={trainingData.date}
                     onSelect={(date) => setTrainingData(prev => ({...prev, date: date}))}
-                    disabled={(date) =>
-                      date > new Date()
-                    }
                     initialFocus
                   />
                 </PopoverContent>
@@ -402,6 +485,30 @@ const AddPage = () => {
                 value={trainingData.time}
                 onChange={handleTrainingChange}
                 placeholder="Horário do treino" 
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="training-location">Local</Label>
+              <Input 
+                type="text" 
+                id="training-location"
+                name="location"
+                value={trainingData.location}
+                onChange={handleTrainingChange}
+                placeholder="Local do treino" 
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="training-uniform">Uniforme</Label>
+              <Input 
+                type="text" 
+                id="training-uniform"
+                name="uniform"
+                value={trainingData.uniform}
+                onChange={handleTrainingChange}
+                placeholder="Uniforme para o treino" 
               />
             </div>
             
@@ -446,7 +553,7 @@ const AddPage = () => {
         </TabsContent>
         
         {/* Announcement Tab */}
-        <TabsContent value="2" className="mt-4">
+        <TabsContent value="2" className="mt-4 px-4">
           <form onSubmit={handleAnnouncementSubmit} className="flex flex-col gap-4">
             <div>
               <Label htmlFor="announcement-title">Título</Label>
@@ -457,6 +564,7 @@ const AddPage = () => {
                 value={announcementData.title}
                 onChange={handleAnnouncementChange}
                 placeholder="Título do aviso" 
+                required
               />
             </div>
             
@@ -468,7 +576,39 @@ const AddPage = () => {
                 value={announcementData.content}
                 onChange={handleAnnouncementChange}
                 placeholder="Conteúdo do aviso"
+                required
               />
+            </div>
+            
+            <div>
+              <Label htmlFor="announcement-priority">Prioridade</Label>
+              <select
+                id="announcement-priority"
+                name="priority"
+                className="w-full p-2 border rounded-md"
+                value={announcementData.priority}
+                onChange={(e) => setAnnouncementData(prev => ({
+                  ...prev, 
+                  priority: e.target.value as 'high' | 'medium' | 'low'
+                }))}
+              >
+                <option value="low">Baixa</option>
+                <option value="medium">Média</option>
+                <option value="high">Alta</option>
+              </select>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="announcement-voting"
+                checked={announcementData.voting}
+                onChange={(e) => setAnnouncementData(prev => ({
+                  ...prev,
+                  voting: e.target.checked
+                }))}
+              />
+              <Label htmlFor="announcement-voting">Permitir votação</Label>
             </div>
             
             <Button disabled={isSubmitting} type="submit">

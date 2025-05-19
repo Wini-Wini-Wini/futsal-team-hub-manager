@@ -59,6 +59,7 @@ export const Layout: React.FC = () => {
           // Use state replace true to force a clean navigation and prevent cached states
           navigate(addAction, { replace: true });
         }}
+        aria-label="Adicionar"
       >
         <Plus size={24} />
       </button>
