@@ -73,16 +73,11 @@ const LoginPage: React.FC = () => {
       <div className="flex-1 flex flex-col items-center justify-center p-8">
         <div className="mb-6">
           <img 
-            src="/lovable-uploads/a1b14023-9776-403e-8461-54f962bb9c6d.png" 
+            src="/lovable-uploads/2c31f4ea-66d6-44e3-8d94-271286837e5a.png" 
             alt="Female Futsal Logo" 
-            className="w-40 h-40 object-contain rounded-full border-4 border-white shadow-lg"
+            className="w-48 h-48 object-contain mx-auto"
           />
         </div>
-        
-        <h1 className="text-2xl font-bold text-white text-center mb-8">
-          <span className="text-[#270E58]">FEMALE</span><br />
-          <span className="text-white">FUTSAL</span>
-        </h1>
         
         <div className="w-full flex flex-col gap-4 mt-auto">
           <Button
@@ -108,16 +103,11 @@ const LoginPage: React.FC = () => {
       <div className="flex-1 flex flex-col items-center p-8">
         <div className="mb-6">
           <img 
-            src="/lovable-uploads/a1b14023-9776-403e-8461-54f962bb9c6d.png" 
+            src="/lovable-uploads/2c31f4ea-66d6-44e3-8d94-271286837e5a.png" 
             alt="Female Futsal Logo" 
-            className="w-40 h-40 object-contain rounded-full border-4 border-white shadow-lg"
+            className="w-48 h-48 object-contain mx-auto"
           />
         </div>
-        
-        <h1 className="text-2xl font-bold text-white text-center mb-8">
-          <span className="text-[#270E58]">FEMALE</span><br />
-          <span className="text-white">FUTSAL</span>
-        </h1>
         
         <form onSubmit={handleLogin} className="w-full mt-4">
           <div className="mb-4">
