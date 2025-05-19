@@ -36,7 +36,6 @@ export const Layout: React.FC = () => {
     
     if (location.pathname === '/agenda') {
       shouldShow = true;
-      // Determine which tab to open based on context
       // For agenda page, show a context menu or default to adding a game
       addAction = '/add?tab=0'; // Default to game (tab 0)
     } else if (location.pathname === '/announcements') {
@@ -57,8 +56,8 @@ export const Layout: React.FC = () => {
       <button 
         className="fixed bottom-20 right-4 w-14 h-14 rounded-full bg-futsal-primary text-white text-3xl flex items-center justify-center shadow-lg"
         onClick={() => {
-          // Ensure we navigate with a fresh state to avoid any caching issues
-          navigate(addAction, { replace: false });
+          // Use state replace true to force a clean navigation and prevent cached states
+          navigate(addAction, { replace: true });
         }}
       >
         <Plus size={24} />
