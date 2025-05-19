@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -73,9 +72,9 @@ const LoginPage: React.FC = () => {
       <div className="flex-1 flex flex-col items-center justify-center p-8">
         <div className="flex flex-col items-center mb-6">
           <img 
-            src="/lovable-uploads/250bc0ef-a336-4057-a13f-f5b72f197077.png" 
+            src="/lovable-uploads/17cdb063-665a-4886-b459-6deb3c3e1035.png" 
             alt="Female Futsal Logo" 
-            className="w-40 h-40 object-contain mx-auto"
+            className="w-48 h-48 object-contain mx-auto"
           />
           <div className="mt-2 text-center">
             <p className="text-3xl font-bold text-[#1A1F2C]">FEMALE</p>
@@ -107,9 +106,9 @@ const LoginPage: React.FC = () => {
       <div className="flex-1 flex flex-col items-center p-8">
         <div className="flex flex-col items-center mb-6">
           <img 
-            src="/lovable-uploads/250bc0ef-a336-4057-a13f-f5b72f197077.png" 
+            src="/lovable-uploads/17cdb063-665a-4886-b459-6deb3c3e1035.png" 
             alt="Female Futsal Logo" 
-            className="w-40 h-40 object-contain mx-auto"
+            className="w-48 h-48 object-contain mx-auto"
           />
           <div className="mt-2 text-center">
             <p className="text-3xl font-bold text-[#1A1F2C]">FEMALE</p>
