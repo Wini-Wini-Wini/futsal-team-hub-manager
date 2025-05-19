@@ -71,12 +71,16 @@ const LoginPage: React.FC = () => {
   const renderInitialScreen = () => {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8">
-        <div className="mb-6">
+        <div className="flex flex-col items-center mb-6">
           <img 
-            src="/lovable-uploads/2c31f4ea-66d6-44e3-8d94-271286837e5a.png" 
+            src="/lovable-uploads/43cd7126-53af-4276-b2cb-341f01b2d453.png" 
             alt="Female Futsal Logo" 
-            className="w-48 h-48 object-contain mx-auto"
+            className="w-40 h-40 object-contain mx-auto"
           />
+          <div className="mt-2 text-center">
+            <p className="text-3xl font-bold text-[#1A1F2C]">FEMALE</p>
+            <p className="text-3xl font-bold text-white">FUTSAL</p>
+          </div>
         </div>
         
         <div className="w-full flex flex-col gap-4 mt-auto">
@@ -89,7 +93,7 @@ const LoginPage: React.FC = () => {
           
           <Button
             onClick={() => navigate('/register')}
-            className="w-full py-6 bg-futsal-accent text-black font-bold rounded-md text-lg uppercase"
+            className="w-full py-6 bg-[#F2B705] text-black font-bold rounded-md text-lg uppercase"
           >
             CRIE SUA CONTA
           </Button>
@@ -101,16 +105,20 @@ const LoginPage: React.FC = () => {
   const renderLoginForm = () => {
     return (
       <div className="flex-1 flex flex-col items-center p-8">
-        <div className="mb-6">
+        <div className="flex flex-col items-center mb-6">
           <img 
-            src="/lovable-uploads/2c31f4ea-66d6-44e3-8d94-271286837e5a.png" 
+            src="/lovable-uploads/43cd7126-53af-4276-b2cb-341f01b2d453.png" 
             alt="Female Futsal Logo" 
-            className="w-48 h-48 object-contain mx-auto"
+            className="w-40 h-40 object-contain mx-auto"
           />
+          <div className="mt-2 text-center">
+            <p className="text-3xl font-bold text-[#1A1F2C]">FEMALE</p>
+            <p className="text-3xl font-bold text-white">FUTSAL</p>
+          </div>
         </div>
         
         <form onSubmit={handleLogin} className="w-full mt-4">
-          <div className="mb-4">
+          <div className="mb-4 bg-[#9b87f5] rounded-md p-4">
             <label className="text-white text-lg" htmlFor="email">Email:</label>
             <Input
               id="email"
@@ -120,10 +128,8 @@ const LoginPage: React.FC = () => {
               className="w-full px-4 py-3 rounded bg-white border-0 mt-2"
               placeholder="seunome@gmail.com"
             />
-          </div>
           
-          <div className="mb-4">
-            <label className="text-white text-lg" htmlFor="password">Senha:</label>
+            <label className="text-white text-lg mt-4 block" htmlFor="password">Senha:</label>
             <div className="relative mt-2">
               <Input
                 id="password"
@@ -141,40 +147,40 @@ const LoginPage: React.FC = () => {
                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
-          </div>
 
-          <div className="mb-6">
-            <RadioGroup 
-              value={role} 
-              onValueChange={(value) => setRole(value as UserRole)}
-              className="flex flex-col space-y-3 mt-4"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="coach" id="coach" />
-                <label htmlFor="coach" className="text-white text-lg">TREINADOR(A)</label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="player" id="player" />
-                <label htmlFor="player" className="text-white text-lg">ALUNA</label>
-              </div>
-            </RadioGroup>
-          </div>
+            <div className="mb-2 text-center mt-2">
+              <a href="#" className="text-white underline text-sm">
+                Esqueceu sua senha?
+              </a>
+            </div>
 
-          <div className="mb-4 text-center">
-            <a href="#" className="text-white underline text-sm">
-              Esqueceu sua senha?
-            </a>
+            <div className="mb-6 mt-4">
+              <RadioGroup 
+                value={role} 
+                onValueChange={(value) => setRole(value as UserRole)}
+                className="flex flex-col space-y-3"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="coach" id="coach" className="bg-[#1A1F2C] border-[#1A1F2C]" />
+                  <label htmlFor="coach" className="text-white text-lg">TREINADOR(A)</label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="player" id="player" className="bg-[#1A1F2C] border-[#1A1F2C]" />
+                  <label htmlFor="player" className="text-white text-lg">ALUNA</label>
+                </div>
+              </RadioGroup>
+            </div>
           </div>
           
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full py-6 bg-futsal-accent text-black font-bold rounded-md text-lg uppercase mt-4"
+            className="w-full py-6 bg-[#F2B705] text-black font-bold rounded-md text-lg uppercase mt-4"
           >
-            {isLoading ? "Entrando..." : "ENTRAR"}
+            {isLoading ? "Entrando..." : "AVANÇAR"}
           </Button>
           
-          <div className="text-center mt-4">
+          <div className="text-center mt-3">
             <button 
               type="button" 
               onClick={() => setShowLoginForm(false)}
@@ -189,7 +195,7 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-futsal-primary to-futsal-secondary">
+    <div className="min-h-screen flex flex-col bg-[#482683]">
       {showLoginForm ? renderLoginForm() : renderInitialScreen()}
     </div>
   );
