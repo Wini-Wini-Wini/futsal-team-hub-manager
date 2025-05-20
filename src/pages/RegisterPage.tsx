@@ -1,11 +1,13 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { UserRole } from '../contexts/AuthContext';
+import Header from '@/components/Header';
 
 const RegisterPage: React.FC = () => {
   const [name, setName] = useState('');
@@ -104,6 +106,11 @@ const RegisterPage: React.FC = () => {
     return (
       <div className="min-h-screen flex flex-col bg-[#482683]">
         <div className="flex-1 flex flex-col items-center justify-center p-8">
+          <img 
+            src="/lovable-uploads/17cdb063-665a-4886-b459-6deb3c3e1035.png" 
+            alt="Female Futsal Logo" 
+            className="w-48 h-48 object-contain mx-auto mb-8"
+          />
           <p className="text-white text-xl font-semibold text-center mb-8">
             SUAS INFORMAÇÕES FORAM ENVIADAS COM SUCESSO!!
           </p>
@@ -123,59 +130,72 @@ const RegisterPage: React.FC = () => {
   const renderRegistrationForm = () => {
     return (
       <div className="min-h-screen flex flex-col bg-[#482683]">
+        <Header 
+          title="CRIAR CONTA" 
+          showBackButton={true}
+        />
+        
         <div className="flex-1 flex flex-col items-center p-8">
           <div className="w-full flex-1 flex flex-col">
-            <h1 className="text-2xl font-bold text-white text-center mb-8">
-              ENVIE SEUS DADOS
-            </h1>
+            <div className="flex flex-col items-center mb-6">
+              <img 
+                src="/lovable-uploads/17cdb063-665a-4886-b459-6deb3c3e1035.png" 
+                alt="Female Futsal Logo" 
+                className="w-32 h-32 object-contain mx-auto"
+              />
+              <div className="mt-2 text-center">
+                <p className="text-2xl font-bold text-[#1A1F2C]">FEMALE</p>
+                <p className="text-2xl font-bold text-white">FUTSAL</p>
+              </div>
+            </div>
             
-            <div className="bg-white rounded-t-lg flex-1 p-4">
+            <div className="bg-[#745AA9] rounded-md p-4 mt-4 mb-4">
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block font-bold text-black" htmlFor="name">NOME:</label>
+                  <label className="block font-bold text-white" htmlFor="name">NOME:</label>
                   <Input
                     id="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full border border-gray-300 rounded"
+                    className="w-full px-4 py-3 rounded bg-white border-0 mt-2"
                     placeholder="DIGITE SEU NOME"
                   />
                 </div>
                 
                 <div>
-                  <label className="block font-bold text-black" htmlFor="email">EMAIL:</label>
+                  <label className="block font-bold text-white" htmlFor="email">EMAIL:</label>
                   <Input
                     id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full border border-gray-300 rounded"
+                    className="w-full px-4 py-3 rounded bg-white border-0 mt-2"
                     placeholder="DIGITE SEU EMAIL"
                   />
                 </div>
                 
                 <div>
-                  <label className="block font-bold text-black" htmlFor="role">CATEGORIA:</label>
+                  <label className="block font-bold text-white" htmlFor="role">CATEGORIA:</label>
                   <select
                     id="role"
                     value={role}
                     onChange={(e) => setRole(e.target.value as UserRole)}
-                    className="w-full h-10 px-3 py-2 border border-gray-300 rounded bg-white"
+                    className="w-full h-10 px-3 py-2 border-0 rounded bg-white mt-2"
                   >
-                    <option value="coach">TREINADOR</option>
+                    <option value="coach">TREINADOR(A)</option>
                     <option value="player">ATLETA</option>
                   </select>
                 </div>
                 
                 <div>
-                  <label className="block font-bold text-black" htmlFor="password">SENHA:</label>
-                  <div className="relative">
+                  <label className="block font-bold text-white" htmlFor="password">SENHA:</label>
+                  <div className="relative mt-2">
                     <Input
                       id="password"
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full border border-gray-300 rounded pr-10"
+                      className="w-full px-4 py-3 rounded bg-white border-0"
                       placeholder="DIGITE SUA SENHA"
                     />
                     <button 
@@ -189,14 +209,14 @@ const RegisterPage: React.FC = () => {
                 </div>
                 
                 <div>
-                  <label className="block font-bold text-black" htmlFor="confirmPassword">DIGITE NOVAMENTE SUA SENHA:</label>
-                  <div className="relative">
+                  <label className="block font-bold text-white" htmlFor="confirmPassword">DIGITE NOVAMENTE SUA SENHA:</label>
+                  <div className="relative mt-2">
                     <Input
                       id="confirmPassword"
                       type={showConfirmPassword ? "text" : "password"}
                       value={confirmPassword}
                       onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full border border-gray-300 rounded pr-10"
+                      className="w-full px-4 py-3 rounded bg-white border-0"
                       placeholder="REPITA SUA SENHA"
                     />
                     <button 
@@ -210,13 +230,13 @@ const RegisterPage: React.FC = () => {
                 </div>
                 
                 <div>
-                  <label className="block font-bold text-black" htmlFor="accessKey">SENHA DE ACESSO:</label>
+                  <label className="block font-bold text-white" htmlFor="accessKey">SENHA DE ACESSO:</label>
                   <Input
                     id="accessKey"
                     type="password"
                     value={accessKey}
                     onChange={(e) => setAccessKey(e.target.value)}
-                    className="w-full border border-gray-300 rounded"
+                    className="w-full px-4 py-3 rounded bg-white border-0 mt-2"
                     placeholder="DIGITE O CÓDIGO FORNECIDO PELA ORGANIZAÇÃO"
                   />
                 </div>
@@ -224,7 +244,7 @@ const RegisterPage: React.FC = () => {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full py-4 bg-[#F2B705] text-black font-bold rounded-md text-lg uppercase"
+                  className="w-full py-6 bg-[#F2B705] text-black font-bold rounded-md text-lg uppercase mt-4"
                 >
                   {isLoading ? "ENVIANDO..." : "ENVIAR"}
                 </Button>
