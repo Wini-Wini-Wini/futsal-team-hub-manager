@@ -80,6 +80,8 @@ const RegisterPage: React.FC = () => {
       
       if (success) {
         setRegistrationSuccess(true);
+        // This will show the success page with a button to return to login
+        // No need to navigate here as the success page has the navigation button
       } else {
         toast({
           title: "Erro ao criar conta",
