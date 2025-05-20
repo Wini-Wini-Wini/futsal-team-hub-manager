@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -25,10 +24,10 @@ const RegisterPage: React.FC = () => {
   const { toast } = useToast();
   
   useEffect(() => {
-    if (isAuthenticated && !registrationSuccess) {
+    if (isAuthenticated) {
       navigate('/');
     }
-  }, [isAuthenticated, navigate, registrationSuccess]);
+  }, [isAuthenticated, navigate]);
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,8 +79,7 @@ const RegisterPage: React.FC = () => {
       
       if (success) {
         setRegistrationSuccess(true);
-        // This will show the success page with a button to return to login
-        // No need to navigate here as the success page has the navigation button
+        // No need to navigate here as we'll show the success page with a button to return to login
       } else {
         toast({
           title: "Erro ao criar conta",

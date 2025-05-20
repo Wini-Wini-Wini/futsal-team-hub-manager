@@ -103,8 +103,24 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
     }
   };
 
-  const login = async (email: string, password: string, role?: UserRole) => {
+  const login = async (email: string, password: string, requestedRole?: UserRole) => {
     try {
+      // First, get the user's profile to check their registered role
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('email', email)
+        .single();
+      
+      // If we can't find the profile or there's an error, we'll proceed with login 
+      // and check the role afterward
+      if (!profileError && profileData && requestedRole && profileData.role !== requestedRole) {
+        return { 
+          success: false, 
+          error: `Você não pode entrar como ${requestedRole === 'coach' ? 'treinador(a)' : 'aluna'} porque se registrou como ${profileData.role === 'coach' ? 'treinador(a)' : 'aluna'}.` 
+        };
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -114,21 +130,21 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
         return { success: false, error: error.message };
       }
 
-      // If a role is specified and user is logged in, update their role
-      if (role && data.user) {
-        const { error: updateError } = await supabase
+      // Double-check role after login
+      if (data.user) {
+        const { data: userProfile, error: fetchError } = await supabase
           .from('profiles')
-          .update({ role })
-          .eq('id', data.user.id);
-
-        if (updateError) {
-          console.error('Error updating role:', updateError);
-          // We still consider the login successful even if role update fails
-        }
+          .select('role')
+          .eq('id', data.user.id)
+          .single();
         
-        // Update local profile with new role
-        if (profile) {
-          setProfile({ ...profile, role });
+        if (!fetchError && userProfile && requestedRole && userProfile.role !== requestedRole) {
+          // Wrong role, log the user out and return an error
+          await supabase.auth.signOut();
+          return { 
+            success: false, 
+            error: `Você não pode entrar como ${requestedRole === 'coach' ? 'treinador(a)' : 'aluna'} porque se registrou como ${userProfile.role === 'coach' ? 'treinador(a)' : 'aluna'}.`
+          };
         }
       }
 
@@ -159,6 +175,9 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
       if (error) {
         return { success: false, error: error.message };
       }
+
+      // After successful signup, log the user out to force them back to the login screen
+      await supabase.auth.signOut();
 
       return { success: true };
     } catch (error) {
