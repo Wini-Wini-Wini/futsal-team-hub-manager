@@ -8,7 +8,8 @@ import { useForm } from "react-hook-form";
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Send } from 'lucide-react';
+import { Send, X, Image } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
 
 interface PostFormValues {
   content: string;
@@ -33,8 +34,29 @@ const PostForm: React.FC = () => {
     try {
       let mediaUrl = null;
       
-      // Create post in database without media for now
-      // We'll leave media uploads for later when the bucket is created
+      // Upload media if selected
+      if (selectedFile) {
+        const fileExt = selectedFile.name.split('.').pop();
+        const fileName = `${uuidv4()}.${fileExt}`;
+        const filePath = `${user.id}/${fileName}`;
+        
+        const { error: uploadError, data } = await supabase
+          .storage
+          .from('posts')
+          .upload(filePath, selectedFile);
+        
+        if (uploadError) throw uploadError;
+
+        // Get public URL for the file
+        const { data: publicUrlData } = supabase
+          .storage
+          .from('posts')
+          .getPublicUrl(filePath);
+          
+        mediaUrl = publicUrlData.publicUrl;
+      }
+      
+      // Create post in database
       const { error } = await supabase
         .from('posts')
         .insert({
@@ -48,6 +70,7 @@ const PostForm: React.FC = () => {
       // Reset form
       form.reset();
       setSelectedFile(null);
+      setPreviewUrl(null);
       
       toast({
         title: "Postagem criada",
@@ -67,12 +90,27 @@ const PostForm: React.FC = () => {
   };
   
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
-      form.setValue('media', e.target.files[0]);
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      form.setValue('media', file);
+      
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
+  };
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    form.setValue('media', undefined);
   };
 
   return (
@@ -96,6 +134,33 @@ const PostForm: React.FC = () => {
             )}
           />
           
+          {previewUrl && (
+            <div className="relative mt-2">
+              <div className="rounded-lg overflow-hidden border">
+                {selectedFile?.type.startsWith('image/') ? (
+                  <img 
+                    src={previewUrl} 
+                    alt="Preview" 
+                    className="w-full h-auto max-h-64 object-contain"
+                  />
+                ) : selectedFile?.type.startsWith('video/') ? (
+                  <video 
+                    src={previewUrl} 
+                    controls
+                    className="w-full max-h-64"
+                  />
+                ) : null}
+              </div>
+              <button 
+                type="button" 
+                onClick={handleRemoveFile}
+                className="absolute top-2 right-2 bg-black bg-opacity-60 text-white rounded-full p-1 hover:bg-opacity-80"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          )}
+          
           <div className="flex items-center gap-2">
             <Input
               type="file"
@@ -106,13 +171,11 @@ const PostForm: React.FC = () => {
             />
             <label 
               htmlFor="mediaUpload" 
-              className="cursor-pointer px-4 py-2 border rounded-md text-sm hover:bg-accent"
+              className="cursor-pointer px-4 py-2 border rounded-md text-sm hover:bg-accent flex items-center gap-2"
             >
-              {selectedFile ? selectedFile.name : "Adicionar mídia"}
+              <Image size={16} />
+              {selectedFile ? "Alterar mídia" : "Adicionar mídia"}
             </label>
-            <small className="text-xs text-amber-600 italic">
-              {selectedFile ? "O upload de mídia ainda não está disponível" : ""}
-            </small>
             
             <Button 
               type="submit" 
