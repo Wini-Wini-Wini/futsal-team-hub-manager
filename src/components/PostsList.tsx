@@ -18,6 +18,15 @@ interface Post {
   profiles: Profile | null;
 }
 
+// Define a type for the raw data from Supabase
+interface RawPost {
+  id: string;
+  content: string;
+  media_url: string | null;
+  created_at: string;
+  profiles: unknown;
+}
+
 const PostsList: React.FC = () => {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,13 +48,23 @@ const PostsList: React.FC = () => {
           
         if (error) throw error;
         
-        // Make sure we have valid profile data before setting posts
+        // Filter posts with valid profile data
         const validPosts = data?.filter(post => 
-          post.profiles && typeof post.profiles === 'object' && 'name' in post.profiles
-        );
+          post.profiles && 
+          typeof post.profiles === 'object' && 
+          'name' in post.profiles
+        ) as RawPost[];
         
-        // Using type assertion after validation
-        setPosts(validPosts as Post[] || []);
+        // Transform to our Post type after validation
+        const typedPosts: Post[] = validPosts?.map(post => ({
+          id: post.id,
+          content: post.content,
+          media_url: post.media_url,
+          created_at: post.created_at,
+          profiles: post.profiles as Profile
+        })) || [];
+        
+        setPosts(typedPosts);
       } catch (error) {
         console.error('Error fetching posts:', error);
       } finally {
@@ -80,9 +99,21 @@ const PostsList: React.FC = () => {
               .eq('id', payload.new.id)
               .single();
               
-            if (data && data.profiles && typeof data.profiles === 'object' && 'name' in data.profiles) {
-              // Using type assertion after validation
-              setPosts(prev => [data as Post, ...prev]);
+            if (data && 
+                data.profiles && 
+                typeof data.profiles === 'object' && 
+                'name' in data.profiles) {
+              
+              // Transform to our Post type after validation
+              const newPost: Post = {
+                id: data.id,
+                content: data.content,
+                media_url: data.media_url,
+                created_at: data.created_at,
+                profiles: data.profiles as Profile
+              };
+              
+              setPosts(prev => [newPost, ...prev]);
             }
           };
           
