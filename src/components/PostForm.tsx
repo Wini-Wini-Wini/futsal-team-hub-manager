@@ -33,31 +33,8 @@ const PostForm: React.FC = () => {
     try {
       let mediaUrl = null;
       
-      // Upload media file if provided
-      if (values.media) {
-        const fileExt = values.media.name.split('.').pop();
-        const filePath = `${user.id}/${Math.random().toString(36).substring(2)}.${fileExt}`;
-        
-        // Upload the file to Supabase Storage
-        const { error: uploadError } = await supabase
-          .storage
-          .from('posts')
-          .upload(filePath, values.media);
-          
-        if (uploadError) {
-          throw uploadError;
-        }
-        
-        // Get the public URL
-        const { data: publicUrlData } = supabase
-          .storage
-          .from('posts')
-          .getPublicUrl(filePath);
-          
-        mediaUrl = publicUrlData.publicUrl;
-      }
-      
-      // Create post in database
+      // Create post in database without media for now
+      // We'll leave media uploads for later when the bucket is created
       const { error } = await supabase
         .from('posts')
         .insert({
@@ -81,7 +58,7 @@ const PostForm: React.FC = () => {
       console.error('Error creating post:', error);
       toast({
         title: "Erro",
-        description: "Não foi possível criar a postagem",
+        description: "Não foi possível criar a postagem. Por favor, tente novamente.",
         variant: "destructive"
       });
     } finally {
@@ -133,6 +110,9 @@ const PostForm: React.FC = () => {
             >
               {selectedFile ? selectedFile.name : "Adicionar mídia"}
             </label>
+            <small className="text-xs text-amber-600 italic">
+              {selectedFile ? "O upload de mídia ainda não está disponível" : ""}
+            </small>
             
             <Button 
               type="submit" 

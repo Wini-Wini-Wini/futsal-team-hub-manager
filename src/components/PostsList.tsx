@@ -15,16 +15,7 @@ interface Post {
   content: string;
   media_url: string | null;
   created_at: string;
-  profiles: Profile | null;
-}
-
-// Define a type for the raw data from Supabase
-interface RawPost {
-  id: string;
-  content: string;
-  media_url: string | null;
-  created_at: string;
-  profiles: unknown;
+  author_name?: string;
 }
 
 const PostsList: React.FC = () => {
@@ -35,36 +26,35 @@ const PostsList: React.FC = () => {
     const fetchPosts = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
+        // Fetch posts without trying to join with profiles
+        const { data: postsData, error: postsError } = await supabase
           .from('posts')
-          .select(`
-            id,
-            content,
-            media_url,
-            created_at,
-            profiles:created_by(name)
-          `)
+          .select('*')
           .order('created_at', { ascending: false });
           
-        if (error) throw error;
+        if (postsError) throw postsError;
         
-        // Filter posts with valid profile data
-        const validPosts = data?.filter(post => 
-          post.profiles && 
-          typeof post.profiles === 'object' && 
-          'name' in post.profiles
-        ) as RawPost[];
+        // Fetch author profiles separately to get names
+        const postsWithAuthors: Post[] = [];
         
-        // Transform to our Post type after validation
-        const typedPosts: Post[] = validPosts?.map(post => ({
-          id: post.id,
-          content: post.content,
-          media_url: post.media_url,
-          created_at: post.created_at,
-          profiles: post.profiles as Profile
-        })) || [];
+        for (const post of postsData || []) {
+          // Get author profile
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('name')
+            .eq('id', post.created_by)
+            .single();
+            
+          postsWithAuthors.push({
+            id: post.id,
+            content: post.content,
+            media_url: post.media_url,
+            created_at: post.created_at,
+            author_name: profileData?.name || 'Treinador'
+          });
+        }
         
-        setPosts(typedPosts);
+        setPosts(postsWithAuthors);
       } catch (error) {
         console.error('Error fetching posts:', error);
       } finally {
@@ -84,40 +74,32 @@ const PostsList: React.FC = () => {
           schema: 'public',
           table: 'posts'
         },
-        (payload) => {
-          // Fetch the full post with author info
-          const fetchNewPost = async () => {
-            const { data } = await supabase
-              .from('posts')
-              .select(`
-                id,
-                content,
-                media_url,
-                created_at,
-                profiles:created_by(name)
-              `)
-              .eq('id', payload.new.id)
+        async (payload) => {
+          // Fetch the new post
+          const { data: post } = await supabase
+            .from('posts')
+            .select('*')
+            .eq('id', payload.new.id)
+            .single();
+            
+          if (post) {
+            // Get author profile
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('name')
+              .eq('id', post.created_by)
               .single();
               
-            if (data && 
-                data.profiles && 
-                typeof data.profiles === 'object' && 
-                'name' in data.profiles) {
-              
-              // Transform to our Post type after validation
-              const newPost: Post = {
-                id: data.id,
-                content: data.content,
-                media_url: data.media_url,
-                created_at: data.created_at,
-                profiles: data.profiles as Profile
-              };
-              
-              setPosts(prev => [newPost, ...prev]);
-            }
-          };
-          
-          fetchNewPost();
+            const newPost: Post = {
+              id: post.id,
+              content: post.content,
+              media_url: post.media_url,
+              created_at: post.created_at,
+              author_name: profileData?.name || 'Treinador'
+            };
+            
+            setPosts(prev => [newPost, ...prev]);
+          }
         }
       )
       .subscribe();
@@ -161,10 +143,10 @@ const PostsList: React.FC = () => {
             <div className="p-4">
               <div className="flex items-center mb-2">
                 <div className="w-8 h-8 rounded-full bg-futsal-primary flex items-center justify-center text-white">
-                  {post.profiles?.name?.charAt(0) || '?'}
+                  {post.author_name?.charAt(0) || '?'}
                 </div>
                 <div className="ml-2">
-                  <p className="font-semibold">{post.profiles?.name || 'Treinador'}</p>
+                  <p className="font-semibold">{post.author_name || 'Treinador'}</p>
                   <p className="text-xs text-gray-500">{formatDate(post.created_at)}</p>
                 </div>
               </div>
