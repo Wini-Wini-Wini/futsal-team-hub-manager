@@ -1,1 +1,17 @@
+
 project_id = "pejqibapmpglcmfeqzbv"
+
+[storage.posts]
+public = true
+
+[storage.posts.allowed_mime_types]
+# Image formats
+image/png = true
+image/jpeg = true
+image/gif = true
+image/webp = true
+image/svg+xml = true
+# Video formats
+video/mp4 = true
+video/webm = true
+video/ogg = true

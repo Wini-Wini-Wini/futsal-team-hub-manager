@@ -90,6 +90,30 @@ export type Database = {
         }
         Relationships: []
       }
+      posts: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string
+          id: string
+          media_url: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by: string
+          id?: string
+          media_url?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          media_url?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

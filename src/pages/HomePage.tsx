@@ -7,6 +7,8 @@ import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import PostForm from '@/components/PostForm';
+import PostsList from '@/components/PostsList';
 
 const HomePage: React.FC = () => {
   const { profile } = useAuth();
@@ -52,6 +54,8 @@ const HomePage: React.FC = () => {
     navigate('/announcements');
   };
 
+  const isCoach = profile?.role === 'coach';
+
   return (
     <div className="flex-1">
       <header className="bg-futsal-primary text-white p-4">
@@ -61,6 +65,19 @@ const HomePage: React.FC = () => {
       </header>
 
       <main className="p-4 flex-1">
+        {/* Coach Post Form */}
+        {isCoach && (
+          <section className="mb-6">
+            <PostForm />
+          </section>
+        )}
+
+        {/* Posts Section */}
+        <section className="mb-6">
+          <h2 className="text-lg font-semibold text-futsal-dark mb-2">Feed de notícias:</h2>
+          <PostsList />
+        </section>
+
         {/* Next Game Section */}
         <section className="mb-6">
           <h2 className="text-lg font-semibold text-futsal-dark mb-2">Próximo jogo:</h2>
