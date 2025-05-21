@@ -6,14 +6,16 @@ import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { FileText } from 'lucide-react';
 
+interface Profile {
+  name: string;
+}
+
 interface Post {
   id: string;
   content: string;
   media_url: string | null;
   created_at: string;
-  profiles: {
-    name: string;
-  };
+  profiles: Profile | null;
 }
 
 const PostsList: React.FC = () => {
@@ -40,9 +42,10 @@ const PostsList: React.FC = () => {
         // Make sure we have valid profile data before setting posts
         const validPosts = data?.filter(post => 
           post.profiles && typeof post.profiles === 'object' && 'name' in post.profiles
-        ) as Post[];
+        );
         
-        setPosts(validPosts || []);
+        // Using type assertion after validation
+        setPosts(validPosts as Post[] || []);
       } catch (error) {
         console.error('Error fetching posts:', error);
       } finally {
@@ -78,6 +81,7 @@ const PostsList: React.FC = () => {
               .single();
               
             if (data && data.profiles && typeof data.profiles === 'object' && 'name' in data.profiles) {
+              // Using type assertion after validation
               setPosts(prev => [data as Post, ...prev]);
             }
           };
