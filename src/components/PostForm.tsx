@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { send } from 'lucide-react';
+import { Send } from 'lucide-react';
 
 interface PostFormValues {
   content: string;
@@ -140,7 +140,7 @@ const PostForm: React.FC = () => {
               disabled={isSubmitting}
             >
               Publicar
-              <send size={16} />
+              <Send size={16} />
             </Button>
           </div>
         </form>

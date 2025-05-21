@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent } from "@/components/ui/card";
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { text } from 'lucide-react';
+import { FileText } from 'lucide-react';
 
 interface Post {
   id: string;
@@ -36,7 +36,13 @@ const PostsList: React.FC = () => {
           .order('created_at', { ascending: false });
           
         if (error) throw error;
-        setPosts(data || []);
+        
+        // Make sure we have valid profile data before setting posts
+        const validPosts = data?.filter(post => 
+          post.profiles && typeof post.profiles === 'object' && 'name' in post.profiles
+        ) as Post[];
+        
+        setPosts(validPosts || []);
       } catch (error) {
         console.error('Error fetching posts:', error);
       } finally {
@@ -71,8 +77,8 @@ const PostsList: React.FC = () => {
               .eq('id', payload.new.id)
               .single();
               
-            if (data) {
-              setPosts(prev => [data, ...prev]);
+            if (data && data.profiles && typeof data.profiles === 'object' && 'name' in data.profiles) {
+              setPosts(prev => [data as Post, ...prev]);
             }
           };
           
@@ -104,7 +110,7 @@ const PostsList: React.FC = () => {
       <Card className="mb-4">
         <CardContent className="p-4 text-center">
           <div className="flex justify-center py-10">
-            <text size={48} className="text-gray-400" />
+            <FileText size={48} className="text-gray-400" />
           </div>
           <p className="text-muted-foreground">Nenhuma postagem encontrada</p>
         </CardContent>
