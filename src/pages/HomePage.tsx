@@ -22,6 +22,13 @@ const HomePage: React.FC = () => {
   
   const nextGame = upcomingGames.length > 0 ? upcomingGames[0] : null;
   
+  // Get latest finished game
+  const pastGames = games
+    .filter(game => new Date(game.date) < new Date())
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  
+  const latestGame = pastGames.length > 0 ? pastGames[0] : null;
+  
   // Get unread announcements for players
   const unreadAnnouncements = getUnreadAnnouncements();
 
@@ -57,14 +64,14 @@ const HomePage: React.FC = () => {
   const isCoach = profile?.role === 'coach';
 
   return (
-    <div className="flex-1">
+    <div className="flex-1 pb-24"> {/* Increased bottom padding to prevent cutoff */}
       <header className="bg-futsal-primary text-white p-4">
         <h1 className="text-xl font-bold">
           Boa {getTimeOfDay()}, {profile?.name?.split(' ')[0] || (profile?.role === 'coach' ? 'Treinador(a)' : 'Atleta')}
         </h1>
       </header>
 
-      <main className="p-4 flex-1">
+      <main className="p-4 flex-1 pb-8"> {/* Added bottom padding */}
         {/* Coach Post Form */}
         {isCoach && (
           <section className="mb-6">
@@ -104,11 +111,11 @@ const HomePage: React.FC = () => {
                   <div className="flex items-center space-x-1">
                     <div className="flex flex-col items-center">
                       <img 
-                        src="/placeholder.svg" 
+                        src={nextGame.home_team_logo || "/placeholder.svg"} 
                         alt="Home Team" 
-                        className="w-8 h-8"
+                        className="w-8 h-8 object-contain"
                       />
-                      <span className="text-xs">Home</span>
+                      <span className="text-xs">Casa</span>
                     </div>
                     <div className="px-2">
                       <div className="text-lg font-bold">
@@ -117,11 +124,11 @@ const HomePage: React.FC = () => {
                     </div>
                     <div className="flex flex-col items-center">
                       <img 
-                        src="/placeholder.svg" 
+                        src={nextGame.away_team_logo || "/placeholder.svg"} 
                         alt="Away Team" 
-                        className="w-8 h-8"
+                        className="w-8 h-8 object-contain"
                       />
-                      <span className="text-xs">Away</span>
+                      <span className="text-xs">{nextGame.opponent || 'Visitante'}</span>
                     </div>
                   </div>
                 </div>
@@ -178,39 +185,62 @@ const HomePage: React.FC = () => {
         )}
 
         {/* Latest Results Section */}
-        <section>
-          <h2 className="text-lg font-semibold text-futsal-dark mb-2">Últimos resultados:</h2>
-          <div className="bg-futsal-light rounded-lg p-4">
-            <div className="flex justify-between items-center">
-              <div className="flex-1">
-                <h3 className="text-lg font-bold text-green-500">Vitória!!</h3>
-                <div className="text-sm">
-                  <p>12' Fulana de Tal</p>
-                  <p>21' Jandira Top</p>
-                  <p>45' Angela M. de Aço</p>
+        <section className="mb-8"> {/* Added margin bottom for final spacing */}
+          <div className="flex justify-between items-center mb-2">
+            <h2 className="text-lg font-semibold text-futsal-dark">Último resultado:</h2>
+            {isCoach && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate('/add?type=past-game')}
+                className="text-futsal-primary"
+              >
+                Adicionar resultado
+              </Button>
+            )}
+          </div>
+          
+          {latestGame && (latestGame.homeScore !== null || latestGame.awayScore !== null) ? (
+            <div className="bg-futsal-light rounded-lg p-4">
+              <div className="flex justify-between items-center">
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-green-500">
+                    {latestGame.homeScore > latestGame.awayScore ? 'Vitória!' : 
+                     latestGame.homeScore < latestGame.awayScore ? 'Derrota' : 'Empate'}
+                  </h3>
+                  <div className="text-sm">
+                    <p>{capitalize(formatDate(latestGame.date))}</p>
+                    <p>{latestGame.location}</p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center space-x-4">
-                <div className="flex flex-col items-center">
-                  <img 
-                    src="/placeholder.svg" 
-                    alt="Home Team" 
-                    className="w-8 h-8"
-                  />
-                </div>
-                <div className="text-xl font-bold">
-                  3 - 1
-                </div>
-                <div className="flex flex-col items-center">
-                  <img 
-                    src="/placeholder.svg" 
-                    alt="Away Team" 
-                    className="w-8 h-8"
-                  />
+                <div className="flex items-center space-x-4">
+                  <div className="flex flex-col items-center">
+                    <img 
+                      src={latestGame.home_team_logo || "/placeholder.svg"} 
+                      alt="Home Team" 
+                      className="w-8 h-8 object-contain"
+                    />
+                    <span className="text-xs">Casa</span>
+                  </div>
+                  <div className="text-xl font-bold">
+                    {latestGame.homeScore} - {latestGame.awayScore}
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <img 
+                      src={latestGame.away_team_logo || "/placeholder.svg"} 
+                      alt="Away Team" 
+                      className="w-8 h-8 object-contain"
+                    />
+                    <span className="text-xs">{latestGame.opponent || 'Visitante'}</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <div className="bg-futsal-light rounded-lg p-4 text-center">
+              <p>Nenhum resultado disponível.</p>
+            </div>
+          )}
         </section>
       </main>
     </div>

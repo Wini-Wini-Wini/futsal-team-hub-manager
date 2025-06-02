@@ -1,10 +1,11 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Header from '../components/Header';
-import { Eye, EyeOff, Edit } from 'lucide-react';
+import { Eye, EyeOff, Edit, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import { v4 as uuidv4 } from 'uuid';
 
 const ProfilePage: React.FC = () => {
   const { user, profile, updateProfile } = useAuth();
@@ -23,6 +24,7 @@ const ProfilePage: React.FC = () => {
     phone: false,
     password: false
   });
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   
   const isCoach = profile?.role === 'coach';
   
@@ -57,6 +59,60 @@ const ProfilePage: React.FC = () => {
         ...prev,
         [field]: field === 'password' ? '************' : (profile[field as keyof typeof profile] || '')
       }));
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !e.target.files[0] || !user) return;
+    
+    const file = e.target.files[0];
+    setIsUploadingAvatar(true);
+    
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `avatar-${uuidv4()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+      
+      const { error: uploadError } = await supabase
+        .storage
+        .from('profiles')
+        .upload(filePath, file);
+      
+      if (uploadError) throw uploadError;
+
+      // Get public URL for the file
+      const { data: publicUrlData } = supabase
+        .storage
+        .from('profiles')
+        .getPublicUrl(filePath);
+        
+      const avatarUrl = publicUrlData.publicUrl;
+      
+      // Update profile with new avatar URL
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: avatarUrl })
+        .eq('id', user.id);
+      
+      if (updateError) throw updateError;
+      
+      // Update local profile state
+      await updateProfile({ avatar_url: avatarUrl });
+      
+      toast({
+        title: "Foto atualizada",
+        description: "Sua foto de perfil foi atualizada com sucesso",
+      });
+      
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar a foto de perfil",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploadingAvatar(false);
     }
   };
   
@@ -96,6 +152,23 @@ const ProfilePage: React.FC = () => {
         <Header title={profile?.name || 'Perfil'} showBackButton={true} />
         
         <div className="p-4">
+          {/* Profile Picture */}
+          <div className="flex justify-center mb-6">
+            <div className="relative">
+              <div className="w-24 h-24 rounded-full bg-futsal-primary flex items-center justify-center text-white text-2xl font-bold overflow-hidden">
+                {profile?.avatar_url ? (
+                  <img 
+                    src={profile.avatar_url} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  profile?.name?.charAt(0) || '?'
+                )}
+              </div>
+            </div>
+          </div>
+          
           <div className="bg-white rounded-lg shadow p-4 mb-4">
             <h3 className="text-sm text-gray-500 mb-1">Nome:</h3>
             <p className="font-medium">{profile?.name}</p>
@@ -126,6 +199,37 @@ const ProfilePage: React.FC = () => {
       <Header title="Treinador(a)" showBackButton={true} />
       
       <div className="p-4">
+        {/* Profile Picture Section */}
+        <div className="flex justify-center mb-6">
+          <div className="relative">
+            <div className="w-24 h-24 rounded-full bg-futsal-primary flex items-center justify-center text-white text-2xl font-bold overflow-hidden">
+              {profile?.avatar_url ? (
+                <img 
+                  src={profile.avatar_url} 
+                  alt="Profile" 
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                profile?.name?.charAt(0) || '?'
+              )}
+            </div>
+            <label 
+              htmlFor="avatarUpload" 
+              className="absolute bottom-0 right-0 bg-futsal-primary text-white rounded-full p-2 cursor-pointer hover:bg-futsal-primary/80"
+            >
+              <Camera size={16} />
+            </label>
+            <input
+              type="file"
+              id="avatarUpload"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarUpload}
+              disabled={isUploadingAvatar}
+            />
+          </div>
+        </div>
+        
         <div className="bg-white rounded-lg shadow mb-4">
           <div className="p-6 border-b">
             <h2 className="text-xl font-semibold">Informações pessoais</h2>

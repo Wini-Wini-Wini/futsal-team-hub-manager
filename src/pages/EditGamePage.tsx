@@ -8,8 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import Header from '../components/Header';
-import { Loader2, Trash2 } from 'lucide-react';
+import { Loader2, Trash2, Upload } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { v4 as uuidv4 } from 'uuid';
 
 const EditGamePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,6 +20,7 @@ const EditGamePage: React.FC = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState<'home' | 'away' | null>(null);
   
   const [gameForm, setGameForm] = useState({
     date: '',
@@ -27,7 +29,9 @@ const EditGamePage: React.FC = () => {
     uniform: '',
     time: '',
     homeScore: 0,
-    awayScore: 0
+    awayScore: 0,
+    homeTeamLogo: '',
+    awayTeamLogo: ''
   });
   
   // Only coaches can edit content
@@ -49,7 +53,9 @@ const EditGamePage: React.FC = () => {
           uniform: game.uniform || '',
           time: game.time,
           homeScore: game.homeScore || 0,
-          awayScore: game.awayScore || 0
+          awayScore: game.awayScore || 0,
+          homeTeamLogo: game.home_team_logo || '',
+          awayTeamLogo: game.away_team_logo || ''
         });
         setIsLoading(false);
       } else {
@@ -80,6 +86,55 @@ const EditGamePage: React.FC = () => {
       setGameForm(prev => ({ ...prev, [name]: value }));
     }
   };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>, team: 'home' | 'away') => {
+    if (!e.target.files || !e.target.files[0] || !user) return;
+    
+    const file = e.target.files[0];
+    setIsUploadingLogo(team);
+    
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${team}-team-${uuidv4()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
+      
+      const { error: uploadError } = await supabase
+        .storage
+        .from('teams')
+        .upload(filePath, file);
+      
+      if (uploadError) throw uploadError;
+
+      // Get public URL for the file
+      const { data: publicUrlData } = supabase
+        .storage
+        .from('teams')
+        .getPublicUrl(filePath);
+        
+      const logoUrl = publicUrlData.publicUrl;
+      
+      // Update form state
+      setGameForm(prev => ({
+        ...prev,
+        [team === 'home' ? 'homeTeamLogo' : 'awayTeamLogo']: logoUrl
+      }));
+      
+      toast({
+        title: "Logo enviada",
+        description: `Logo do time ${team === 'home' ? 'da casa' : 'visitante'} foi enviada com sucesso`,
+      });
+      
+    } catch (error) {
+      console.error('Error uploading logo:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível enviar a logo do time",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploadingLogo(null);
+    }
+  };
   
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,7 +157,9 @@ const EditGamePage: React.FC = () => {
           uniform: gameForm.uniform,
           time: gameForm.time,
           home_score: gameForm.homeScore,
-          away_score: gameForm.awayScore
+          away_score: gameForm.awayScore,
+          home_team_logo: gameForm.homeTeamLogo,
+          away_team_logo: gameForm.awayTeamLogo
         })
         .eq('id', id);
       
@@ -253,6 +310,57 @@ const EditGamePage: React.FC = () => {
                   onChange={handleChange}
                   required
                 />
+              </div>
+
+              {/* Team Logos Section */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Logo Time da Casa</Label>
+                  <div className="flex flex-col items-center space-y-2">
+                    {gameForm.homeTeamLogo && (
+                      <img 
+                        src={gameForm.homeTeamLogo} 
+                        alt="Home team logo" 
+                        className="w-16 h-16 object-contain"
+                      />
+                    )}
+                    <label className="cursor-pointer bg-gray-100 border rounded-md px-3 py-2 text-sm flex items-center gap-2">
+                      <Upload size={16} />
+                      {isUploadingLogo === 'home' ? 'Enviando...' : 'Enviar Logo'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleLogoUpload(e, 'home')}
+                        disabled={isUploadingLogo === 'home'}
+                      />
+                    </label>
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label>Logo Time Visitante</Label>
+                  <div className="flex flex-col items-center space-y-2">
+                    {gameForm.awayTeamLogo && (
+                      <img 
+                        src={gameForm.awayTeamLogo} 
+                        alt="Away team logo" 
+                        className="w-16 h-16 object-contain"
+                      />
+                    )}
+                    <label className="cursor-pointer bg-gray-100 border rounded-md px-3 py-2 text-sm flex items-center gap-2">
+                      <Upload size={16} />
+                      {isUploadingLogo === 'away' ? 'Enviando...' : 'Enviar Logo'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleLogoUpload(e, 'away')}
+                        disabled={isUploadingLogo === 'away'}
+                      />
+                    </label>
+                  </div>
+                </div>
               </div>
               
               <div className="grid grid-cols-2 gap-4">

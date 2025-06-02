@@ -93,15 +93,21 @@ const AgendaPage: React.FC = () => {
                             <p className="flex items-center">
                               <span className="mr-1">🕒</span> Horário: {game.time}
                             </p>
+                            {game.opponent && (
+                              <p className="flex items-center">
+                                <span className="mr-1">🆚</span> vs {game.opponent}
+                              </p>
+                            )}
                           </div>
                         </div>
                         <div className="flex items-center space-x-1">
                           <div className="flex flex-col items-center">
                             <img 
-                              src="/placeholder.svg" 
+                              src={game.home_team_logo || "/placeholder.svg"} 
                               alt="Home Team" 
-                              className="w-8 h-8"
+                              className="w-8 h-8 object-contain"
                             />
+                            <span className="text-xs">Casa</span>
                           </div>
                           <div className="px-2">
                             <div className="text-lg font-bold">
@@ -110,10 +116,11 @@ const AgendaPage: React.FC = () => {
                           </div>
                           <div className="flex flex-col items-center">
                             <img 
-                              src="/placeholder.svg" 
+                              src={game.away_team_logo || "/placeholder.svg"} 
                               alt="Away Team" 
-                              className="w-8 h-8"
+                              className="w-8 h-8 object-contain"
                             />
+                            <span className="text-xs">{game.opponent || 'Visitante'}</span>
                           </div>
                         </div>
                       </div>
