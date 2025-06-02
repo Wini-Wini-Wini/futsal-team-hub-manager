@@ -14,6 +14,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Post {
   id: string;
@@ -47,6 +58,18 @@ const PostCard: React.FC<PostCardProps> = ({ post, onDelete }) => {
     
     setIsDeleting(true);
     try {
+      // Delete media file if exists
+      if (post.media_url) {
+        const urlParts = post.media_url.split('/');
+        const fileName = urlParts[urlParts.length - 1];
+        if (fileName) {
+          await supabase.storage
+            .from('profiles')
+            .remove([`${user?.id}/${fileName}`]);
+        }
+      }
+      
+      // Delete post from database
       const { error } = await supabase
         .from('posts')
         .delete()
@@ -78,10 +101,18 @@ const PostCard: React.FC<PostCardProps> = ({ post, onDelete }) => {
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-purple-800 flex items-center justify-center text-white shadow-lg">
-                <span className="text-lg font-bold">
-                  {post.author_name?.charAt(0) || '?'}
-                </span>
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-purple-800 flex items-center justify-center text-white shadow-lg overflow-hidden">
+                {profile?.avatar_url ? (
+                  <img 
+                    src={profile.avatar_url} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-lg font-bold">
+                    {post.author_name?.charAt(0) || '?'}
+                  </span>
+                )}
               </div>
               <div className="ml-4">
                 <p className="font-bold text-gray-900">{post.author_name || 'Treinador'}</p>
@@ -97,14 +128,35 @@ const PostCard: React.FC<PostCardProps> = ({ post, onDelete }) => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem 
-                    onClick={handleDelete}
-                    disabled={isDeleting}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    {isDeleting ? 'Excluindo...' : 'Excluir'}
-                  </DropdownMenuItem>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <DropdownMenuItem 
+                        onSelect={(e) => e.preventDefault()}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Excluir
+                      </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Excluir postagem</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Tem certeza que deseja excluir esta postagem? Esta ação não pode ser desfeita.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction 
+                          onClick={handleDelete}
+                          disabled={isDeleting}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          {isDeleting ? 'Excluindo...' : 'Excluir'}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </DropdownMenuContent>
               </DropdownMenu>
             )}

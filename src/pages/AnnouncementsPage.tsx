@@ -5,7 +5,7 @@ import TabBar from '../components/TabBar';
 import { useData, Announcement } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
 import { format, parseISO } from 'date-fns';
-import { Edit, RefreshCw } from 'lucide-react';
+import { Edit, RefreshCw, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -24,10 +24,9 @@ const AnnouncementsPage: React.FC = () => {
   useEffect(() => {
     if (activeTab === 0) {
       setHasVisitedPage(false);
-      // Definir um temporizador mais longo (15 segundos) antes de marcar como lido
       const timer = setTimeout(() => {
         setHasVisitedPage(true);
-      }, 15000); // 15 segundos
+      }, 15000);
       
       return () => clearTimeout(timer);
     }
@@ -76,17 +75,16 @@ const AnnouncementsPage: React.FC = () => {
     return null;
   };
 
-  // Determine color based on priority
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'high':
-        return 'text-futsal-red';
+        return 'text-red-600 bg-red-50 border-red-200';
       case 'medium':
-        return 'text-amber-500';
+        return 'text-amber-600 bg-amber-50 border-amber-200';
       case 'low':
-        return 'text-futsal-green';
+        return 'text-green-600 bg-green-50 border-green-200';
       default:
-        return '';
+        return 'text-purple-600 bg-purple-50 border-purple-200';
     }
   };
 
@@ -99,7 +97,7 @@ const AnnouncementsPage: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900">
       <Header 
         title="Avisos"
         showHomeButton={true}
@@ -109,74 +107,93 @@ const AnnouncementsPage: React.FC = () => {
           </Button>
         }
       />
-      <TabBar 
-        tabs={tabs} 
-        activeTab={activeTab} 
-        onTabChange={setActiveTab} 
-      />
+      
+      <div className="px-6 py-4">
+        <TabBar 
+          tabs={tabs} 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab} 
+        />
+      </div>
 
-      <div className="p-4">
+      <div className="px-6 pb-32">
         {isLoading ? (
           <div className="flex justify-center items-center p-8">
-            <RefreshCw className="h-8 w-8 animate-spin text-futsal-primary" />
+            <div className="flex flex-col items-center space-y-4">
+              <RefreshCw className="h-8 w-8 animate-spin text-purple-300" />
+              <p className="text-purple-200 font-medium">Carregando avisos...</p>
+            </div>
           </div>
         ) : displayedAnnouncements.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {displayedAnnouncements.map((announcement) => {
               const userVote = getUserVote(announcement);
               
               return (
                 <Card 
                   key={announcement.id} 
-                  className="relative overflow-hidden"
+                  className="relative overflow-hidden shadow-lg border-0 bg-gradient-to-br from-white to-purple-50"
                 >
-                  <CardContent className="p-4">
-                    <div className="flex justify-between">
-                      <h3 className={`font-bold ${getPriorityColor(announcement.priority)}`}>
-                        {announcement.title}
-                      </h3>
-                      <span className="text-sm text-gray-500">{announcement.author}</span>
-                    </div>
-                    
-                    <p className="mt-1 text-gray-700">{announcement.message}</p>
-                    
-                    {announcement.voting && (
-                      <div className="mt-3 flex items-center space-x-4">
-                        <span className="text-sm text-gray-600">Votação:</span>
-                        <div className="space-x-2">
-                          <button 
-                            className={`px-2 py-1 text-sm rounded ${
-                              userVote === 'yes' 
-                                ? 'bg-futsal-green text-white' 
-                                : 'bg-gray-100'
-                            }`}
-                            onClick={() => handleVote(announcement, 'yes')}
-                          >
-                            Sim ({announcement.votes?.yes.length || 0})
-                          </button>
-                          <button 
-                            className={`px-2 py-1 text-sm rounded ${
-                              userVote === 'no' 
-                                ? 'bg-futsal-red text-white' 
-                                : 'bg-gray-100'
-                            }`}
-                            onClick={() => handleVote(announcement, 'no')}
-                          >
-                            Não ({announcement.votes?.no.length || 0})
-                          </button>
+                  <CardContent className="p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex items-center space-x-3">
+                        <div className={`p-2 rounded-full ${getPriorityColor(announcement.priority)} border-2`}>
+                          <AlertTriangle size={20} />
+                        </div>
+                        <div>
+                          <h3 className={`font-bold text-lg ${getPriorityColor(announcement.priority).split(' ')[0]}`}>
+                            {announcement.title}
+                          </h3>
+                          <div className="flex items-center space-x-2 text-sm text-purple-600">
+                            <span className="font-medium">{announcement.author}</span>
+                            <span>•</span>
+                            <span>{format(parseISO(announcement.date), "dd 'de' MMMM", { locale: require('date-fns/locale/pt-BR') })}</span>
+                          </div>
                         </div>
                       </div>
-                    )}
+                      
+                      {isCoach && (
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          className="text-purple-600 hover:bg-purple-100"
+                          onClick={() => navigate(`/edit-announcement/${announcement.id}`)}
+                        >
+                          <Edit size={18} />
+                        </Button>
+                      )}
+                    </div>
                     
-                    {isCoach && (
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        className="absolute bottom-2 right-2 text-futsal-primary"
-                        onClick={() => navigate(`/edit-announcement/${announcement.id}`)}
-                      >
-                        <Edit size={18} />
-                      </Button>
+                    <p className="text-gray-800 leading-relaxed mb-4">{announcement.message}</p>
+                    
+                    {announcement.voting && (
+                      <div className="mt-4 p-4 bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg border border-purple-200">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-purple-700">Votação:</span>
+                          <div className="flex space-x-3">
+                            <button 
+                              className={`px-4 py-2 text-sm rounded-lg font-medium transition-all ${
+                                userVote === 'yes' 
+                                  ? 'bg-green-600 text-white shadow-md' 
+                                  : 'bg-white text-green-600 border border-green-200 hover:bg-green-50'
+                              }`}
+                              onClick={() => handleVote(announcement, 'yes')}
+                            >
+                              Sim ({announcement.votes?.yes.length || 0})
+                            </button>
+                            <button 
+                              className={`px-4 py-2 text-sm rounded-lg font-medium transition-all ${
+                                userVote === 'no' 
+                                  ? 'bg-red-600 text-white shadow-md' 
+                                  : 'bg-white text-red-600 border border-red-200 hover:bg-red-50'
+                              }`}
+                              onClick={() => handleVote(announcement, 'no')}
+                            >
+                              Não ({announcement.votes?.no.length || 0})
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     )}
                   </CardContent>
                 </Card>
@@ -184,11 +201,23 @@ const AnnouncementsPage: React.FC = () => {
             })}
           </div>
         ) : (
-          <div className="text-center p-8 text-gray-500">
-            {activeTab === 0 
-              ? "Não há avisos não lidos" 
-              : "Não há avisos lidos"}
-          </div>
+          <Card className="bg-gradient-to-br from-white to-purple-50 border-0 shadow-lg">
+            <CardContent className="p-12 text-center">
+              <div className="flex justify-center py-6">
+                <AlertTriangle size={48} className="text-purple-400" />
+              </div>
+              <p className="text-purple-600 font-medium text-lg">
+                {activeTab === 0 
+                  ? "Não há avisos não lidos" 
+                  : "Não há avisos lidos"}
+              </p>
+              <p className="text-purple-400 text-sm mt-2">
+                {activeTab === 0 
+                  ? "Novos avisos aparecerão aqui" 
+                  : "Avisos lidos aparecerão aqui"}
+              </p>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>

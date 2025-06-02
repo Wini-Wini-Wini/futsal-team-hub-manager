@@ -5,7 +5,6 @@ import Header from '../components/Header';
 import { Eye, EyeOff, Edit, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { v4 as uuidv4 } from 'uuid';
 
 const ProfilePage: React.FC = () => {
   const { user, profile, updateProfile } = useAuth();
@@ -34,7 +33,7 @@ const ProfilePage: React.FC = () => {
         name: profile.name || '',
         email: profile.email || '',
         phone: profile.phone || '',
-        password: '************' // Placeholder for password
+        password: '************'
       });
     }
   }, [profile]);
@@ -53,7 +52,6 @@ const ProfilePage: React.FC = () => {
       [field]: !prev[field]
     }));
     
-    // If closing edit mode, reset the field value to original
     if (isEditing[field] && profile) {
       setFormData(prev => ({
         ...prev,
@@ -70,8 +68,18 @@ const ProfilePage: React.FC = () => {
     
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `avatar-${uuidv4()}.${fileExt}`;
+      const fileName = `avatar-${Date.now()}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
+      
+      // Delete old avatar if exists
+      if (profile?.avatar_url) {
+        const oldFileName = profile.avatar_url.split('/').pop();
+        if (oldFileName) {
+          await supabase.storage
+            .from('profiles')
+            .remove([`${user.id}/${oldFileName}`]);
+        }
+      }
       
       const { error: uploadError } = await supabase
         .storage
@@ -80,7 +88,6 @@ const ProfilePage: React.FC = () => {
       
       if (uploadError) throw uploadError;
 
-      // Get public URL for the file
       const { data: publicUrlData } = supabase
         .storage
         .from('profiles')
@@ -88,7 +95,6 @@ const ProfilePage: React.FC = () => {
         
       const avatarUrl = publicUrlData.publicUrl;
       
-      // Update profile with new avatar URL
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ avatar_url: avatarUrl })
@@ -96,7 +102,6 @@ const ProfilePage: React.FC = () => {
       
       if (updateError) throw updateError;
       
-      // Update local profile state
       await updateProfile({ 
         avatar_url: avatarUrl 
       });
@@ -118,10 +123,9 @@ const ProfilePage: React.FC = () => {
     }
   };
   
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!user || !profile) return;
     
-    // Validate email
     if (!/\S+@\S+\.\S+/.test(formData.email)) {
       toast({
         title: "Erro de validação",
@@ -131,30 +135,46 @@ const ProfilePage: React.FC = () => {
       return;
     }
     
-    // In a real app, we would send password update to backend separately
-    // For this demo, we'll just update the user info
-    updateProfile({
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone
-    });
-    
-    toast({
-      title: "Perfil atualizado",
-      description: "Suas informações foram atualizadas com sucesso",
-    });
-    
-    navigate('/menu');
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone
+        })
+        .eq('id', user.id);
+      
+      if (error) throw error;
+      
+      await updateProfile({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone
+      });
+      
+      toast({
+        title: "Perfil atualizado",
+        description: "Suas informações foram atualizadas com sucesso",
+      });
+      
+      navigate('/menu');
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar o perfil",
+        variant: "destructive"
+      });
+    }
   };
   
-  // Only coaches can edit their profile
   if (!isCoach) {
     return (
       <div className="flex-1 pb-20">
         <Header title={profile?.name || 'Perfil'} showBackButton={true} />
         
         <div className="p-4">
-          {/* Profile Picture */}
           <div className="flex justify-center mb-6">
             <div className="relative">
               <div className="w-24 h-24 rounded-full bg-futsal-primary flex items-center justify-center text-white text-2xl font-bold overflow-hidden">
@@ -201,7 +221,6 @@ const ProfilePage: React.FC = () => {
       <Header title="Treinador(a)" showBackButton={true} />
       
       <div className="p-4">
-        {/* Profile Picture Section */}
         <div className="flex justify-center mb-6">
           <div className="relative">
             <div className="w-24 h-24 rounded-full bg-futsal-primary flex items-center justify-center text-white text-2xl font-bold overflow-hidden">
