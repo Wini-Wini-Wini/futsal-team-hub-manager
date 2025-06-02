@@ -1,15 +1,16 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Header from '../components/Header';
 import TabBar from '../components/TabBar';
-import { useData, Game, Training } from '../contexts/DataContext';
+import { useData, Training } from '../contexts/DataContext';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Edit, RefreshCw } from 'lucide-react';
+import { Edit, RefreshCw, Calendar, MapPin, Clock, Shirt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import GameCard from '@/components/GameCard';
 
 const AgendaPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -19,7 +20,6 @@ const AgendaPage: React.FC = () => {
   
   const tabs = ['Próximos jogos', 'Próximos treinos'];
 
-  // Sort games and trainings by date
   const sortedGames = [...games]
     .filter(game => new Date(game.date) >= new Date())
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -36,7 +36,6 @@ const AgendaPage: React.FC = () => {
     };
   };
 
-  // Function to capitalize first letter
   const capitalize = (str: string) => {
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
@@ -48,7 +47,7 @@ const AgendaPage: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900">
       <Header 
         title="Agenda" 
         rightElement={
@@ -57,137 +56,98 @@ const AgendaPage: React.FC = () => {
           </Button>
         }
       />
-      <TabBar 
-        tabs={tabs} 
-        activeTab={activeTab} 
-        onTabChange={setActiveTab} 
-      />
+      
+      <div className="bg-white/10 backdrop-blur-sm">
+        <TabBar 
+          tabs={tabs} 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab} 
+        />
+      </div>
 
-      <div className="p-4">
+      <div className="p-6 pb-32">
         {isLoading ? (
-          <div className="flex justify-center items-center p-8">
-            <RefreshCw className="h-8 w-8 animate-spin text-futsal-primary" />
+          <div className="flex justify-center items-center p-12">
+            <div className="text-center">
+              <RefreshCw className="h-12 w-12 animate-spin text-white mb-4 mx-auto" />
+              <p className="text-white font-medium">Carregando agenda...</p>
+            </div>
           </div>
         ) : activeTab === 0 ? (
           // Games
-          <div className="space-y-4">
+          <div className="space-y-6">
             {sortedGames.length > 0 ? (
-              sortedGames.map((game) => {
-                const { dayOfWeek, date } = formatDate(game.date);
-                return (
-                  <Card 
-                    key={game.id} 
-                    className="relative overflow-hidden"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <h3 className="font-bold text-lg">{dayOfWeek}, {date}</h3>
-                          <div className="text-sm text-gray-600 mt-1">
-                            <p className="flex items-center">
-                              <span className="mr-1">📍</span> {game.location}
-                            </p>
-                            <p className="flex items-center">
-                              <span className="mr-1">👕</span> Uniforme: {game.uniform}
-                            </p>
-                            <p className="flex items-center">
-                              <span className="mr-1">🕒</span> Horário: {game.time}
-                            </p>
-                            {game.opponent && (
-                              <p className="flex items-center">
-                                <span className="mr-1">🆚</span> vs {game.opponent}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-1">
-                          <div className="flex flex-col items-center">
-                            <img 
-                              src={game.home_team_logo || "/placeholder.svg"} 
-                              alt="Home Team" 
-                              className="w-8 h-8 object-contain"
-                            />
-                            <span className="text-xs">Casa</span>
-                          </div>
-                          <div className="px-2">
-                            <div className="text-lg font-bold">
-                              {game.homeScore ?? 0} - {game.awayScore ?? 0}
-                            </div>
-                          </div>
-                          <div className="flex flex-col items-center">
-                            <img 
-                              src={game.away_team_logo || "/placeholder.svg"} 
-                              alt="Away Team" 
-                              className="w-8 h-8 object-contain"
-                            />
-                            <span className="text-xs">{game.opponent || 'Visitante'}</span>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {isCoach && (
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          className="absolute bottom-2 right-2 text-futsal-primary"
-                          onClick={() => navigate(`/edit-game/${game.id}`)}
-                        >
-                          <Edit size={18} />
-                        </Button>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })
+              sortedGames.map((game) => (
+                <GameCard key={game.id} game={game} />
+              ))
             ) : (
-              <div className="text-center p-8 text-gray-500">
-                Não há jogos agendados
-              </div>
+              <Card className="bg-gradient-to-br from-white to-purple-50 border-0 shadow-lg">
+                <CardContent className="p-12 text-center">
+                  <Calendar className="h-16 w-16 text-purple-400 mx-auto mb-6" />
+                  <h3 className="text-xl font-bold text-purple-800 mb-2">Nenhum jogo agendado</h3>
+                  <p className="text-purple-600">Os próximos jogos aparecerão aqui</p>
+                </CardContent>
+              </Card>
             )}
           </div>
         ) : (
           // Trainings
-          <div className="space-y-4">
+          <div className="space-y-6">
             {sortedTrainings.length > 0 ? (
               sortedTrainings.map((training) => {
                 const { dayOfWeek, date } = formatDate(training.date);
                 return (
                   <Card 
                     key={training.id} 
-                    className="relative overflow-hidden"
+                    className="overflow-hidden shadow-lg border-0 bg-gradient-to-br from-white to-blue-50 hover:shadow-xl transition-all duration-300"
                   >
-                    <CardContent className="p-4">
-                      <h3 className="font-bold">{dayOfWeek}, {date}</h3>
-                      <div className="text-sm text-gray-600 mt-1">
-                        <p className="flex items-center">
-                          <span className="mr-1">📍</span> {training.location}
-                        </p>
-                        <p className="flex items-center">
-                          <span className="mr-1">🕒</span> {training.time}
-                        </p>
-                        <p className="flex items-center">
-                          <span className="mr-1">👕</span> {training.uniform}
-                        </p>
+                    <CardContent className="p-6">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <h3 className="font-bold text-xl text-gray-900 mb-4">
+                            {dayOfWeek}, {date}
+                          </h3>
+                          
+                          <div className="space-y-3">
+                            <div className="flex items-center text-blue-700">
+                              <MapPin className="mr-3 h-5 w-5" />
+                              <span className="font-medium">{training.location}</span>
+                            </div>
+                            <div className="flex items-center text-blue-700">
+                              <Clock className="mr-3 h-5 w-5" />
+                              <span className="font-medium">{training.time}</span>
+                            </div>
+                            <div className="flex items-center text-blue-700">
+                              <Shirt className="mr-3 h-5 w-5" />
+                              <span className="font-medium">{training.uniform}</span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {isCoach && (
+                          <Button 
+                            variant="outline"
+                            size="sm"
+                            className="text-blue-600 border-blue-300 hover:bg-blue-50 hover:border-blue-400"
+                            onClick={() => navigate(`/edit-training/${training.id}`)}
+                          >
+                            <Edit className="mr-2 h-4 w-4" />
+                            Editar
+                          </Button>
+                        )}
                       </div>
-                      
-                      {isCoach && (
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          className="absolute bottom-2 right-2 text-futsal-primary"
-                          onClick={() => navigate(`/edit-training/${training.id}`)}
-                        >
-                          <Edit size={18} />
-                        </Button>
-                      )}
                     </CardContent>
                   </Card>
                 );
               })
             ) : (
-              <div className="text-center p-8 text-gray-500">
-                Não há treinos agendados
-              </div>
+              <Card className="bg-gradient-to-br from-white to-blue-50 border-0 shadow-lg">
+                <CardContent className="p-12 text-center">
+                  <Calendar className="h-16 w-16 text-blue-400 mx-auto mb-6" />
+                  <h3 className="text-xl font-bold text-blue-800 mb-2">Nenhum treino agendado</h3>
+                  <p className="text-blue-600">Os próximos treinos aparecerão aqui</p>
+                </CardContent>
+              </Card>
             )}
           </div>
         )}

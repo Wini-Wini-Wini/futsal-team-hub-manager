@@ -1,14 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent } from "@/components/ui/card";
-import { format, parseISO } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { FileText } from 'lucide-react';
-
-interface Profile {
-  name: string;
-}
+import PostCard from './PostCard';
 
 interface Post {
   id: string;
@@ -16,6 +10,7 @@ interface Post {
   media_url: string | null;
   created_at: string;
   author_name?: string;
+  created_by?: string;
 }
 
 const PostsList: React.FC = () => {
@@ -26,7 +21,6 @@ const PostsList: React.FC = () => {
     const fetchPosts = async () => {
       setLoading(true);
       try {
-        // Fetch posts without trying to join with profiles
         const { data: postsData, error: postsError } = await supabase
           .from('posts')
           .select('*')
@@ -34,11 +28,9 @@ const PostsList: React.FC = () => {
           
         if (postsError) throw postsError;
         
-        // Fetch author profiles separately to get names
         const postsWithAuthors: Post[] = [];
         
         for (const post of postsData || []) {
-          // Get author profile
           const { data: profileData } = await supabase
             .from('profiles')
             .select('name')
@@ -50,7 +42,8 @@ const PostsList: React.FC = () => {
             content: post.content,
             media_url: post.media_url,
             created_at: post.created_at,
-            author_name: profileData?.name || 'Treinador'
+            author_name: profileData?.name || 'Treinador',
+            created_by: post.created_by
           });
         }
         
@@ -64,7 +57,6 @@ const PostsList: React.FC = () => {
     
     fetchPosts();
     
-    // Set up realtime subscription
     const channel = supabase
       .channel('schema-db-changes')
       .on(
@@ -75,7 +67,6 @@ const PostsList: React.FC = () => {
           table: 'posts'
         },
         async (payload) => {
-          // Fetch the new post
           const { data: post } = await supabase
             .from('posts')
             .select('*')
@@ -83,7 +74,6 @@ const PostsList: React.FC = () => {
             .single();
             
           if (post) {
-            // Get author profile
             const { data: profileData } = await supabase
               .from('profiles')
               .select('name')
@@ -95,7 +85,8 @@ const PostsList: React.FC = () => {
               content: post.content,
               media_url: post.media_url,
               created_at: post.created_at,
-              author_name: profileData?.name || 'Treinador'
+              author_name: profileData?.name || 'Treinador',
+              created_by: post.created_by
             };
             
             setPosts(prev => [newPost, ...prev]);
@@ -109,70 +100,41 @@ const PostsList: React.FC = () => {
     };
   }, []);
   
-  const formatDate = (dateStr: string) => {
-    const date = parseISO(dateStr);
-    return format(date, "dd 'de' MMMM 'às' HH:mm", { locale: ptBR });
+  const handleDeletePost = (postId: string) => {
+    setPosts(prev => prev.filter(post => post.id !== postId));
   };
   
   if (loading && posts.length === 0) {
     return (
-      <div className="flex justify-center p-6">
-        <p>Carregando postagens...</p>
+      <div className="flex justify-center p-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-purple-600 font-medium">Carregando postagens...</p>
+        </div>
       </div>
     );
   }
   
   if (posts.length === 0) {
     return (
-      <Card className="mb-4">
-        <CardContent className="p-4 text-center">
-          <div className="flex justify-center py-10">
-            <FileText size={48} className="text-gray-400" />
-          </div>
-          <p className="text-muted-foreground">Nenhuma postagem encontrada</p>
-        </CardContent>
-      </Card>
+      <div className="bg-gradient-to-br from-purple-50 to-white rounded-xl p-8 text-center border border-purple-100 shadow-lg">
+        <div className="flex justify-center py-6">
+          <FileText size={48} className="text-purple-400" />
+        </div>
+        <p className="text-purple-600 font-medium">Nenhuma postagem encontrada</p>
+        <p className="text-purple-400 text-sm mt-2">As postagens aparecerão aqui</p>
+      </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {posts.map(post => (
-        <Card key={post.id} className="overflow-hidden">
-          <CardContent className="p-0">
-            <div className="p-4">
-              <div className="flex items-center mb-2">
-                <div className="w-8 h-8 rounded-full bg-futsal-primary flex items-center justify-center text-white">
-                  {post.author_name?.charAt(0) || '?'}
-                </div>
-                <div className="ml-2">
-                  <p className="font-semibold">{post.author_name || 'Treinador'}</p>
-                  <p className="text-xs text-gray-500">{formatDate(post.created_at)}</p>
-                </div>
-              </div>
-              
-              <p className="text-sm whitespace-pre-line mb-3">{post.content}</p>
-              
-              {post.media_url && (
-                <div className="mt-2 rounded-lg overflow-hidden">
-                  {post.media_url.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
-                    <img 
-                      src={post.media_url} 
-                      alt="Post media" 
-                      className="w-full h-auto max-h-96 object-contain"
-                    />
-                  ) : post.media_url.match(/\.(mp4|webm|ogg)$/i) ? (
-                    <video 
-                      src={post.media_url} 
-                      controls
-                      className="w-full max-h-96"
-                    />
-                  ) : null}
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        <PostCard 
+          key={post.id} 
+          post={post} 
+          onDelete={handleDeletePost}
+        />
       ))}
     </div>
   );

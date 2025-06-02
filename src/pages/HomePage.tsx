@@ -9,6 +9,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import PostForm from '@/components/PostForm';
 import PostsList from '@/components/PostsList';
+import GameCard from '@/components/GameCard';
+import { Plus, Calendar, Trophy, Bell } from 'lucide-react';
 
 const HomePage: React.FC = () => {
   const { profile } = useAuth();
@@ -22,37 +24,30 @@ const HomePage: React.FC = () => {
   
   const nextGame = upcomingGames.length > 0 ? upcomingGames[0] : null;
   
-  // Get latest finished game
-  const pastGames = games
-    .filter(game => new Date(game.date) < new Date())
+  // Get latest finished games with results
+  const pastGamesWithResults = games
+    .filter(game => 
+      new Date(game.date) < new Date() && 
+      (game.homeScore !== null || game.awayScore !== null)
+    )
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   
-  const latestGame = pastGames.length > 0 ? pastGames[0] : null;
+  const latestResults = pastGamesWithResults.slice(0, 3);
   
   // Get unread announcements for players
   const unreadAnnouncements = getUnreadAnnouncements();
-
-  const formatDate = (dateStr: string) => {
-    const date = parseISO(dateStr);
-    return format(date, "EEEE, dd 'de' MMMM", { locale: ptBR });
-  };
-
-  // Function to capitalize first letter
-  const capitalize = (str: string) => {
-    return str.charAt(0).toUpperCase() + str.slice(1);
-  };
   
   // Get priority color for announcements
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'high':
-        return 'text-futsal-red';
+        return 'text-red-600 bg-red-50 border-red-200';
       case 'medium':
-        return 'text-amber-500';
+        return 'text-amber-600 bg-amber-50 border-amber-200';
       case 'low':
-        return 'text-futsal-green';
+        return 'text-green-600 bg-green-50 border-green-200';
       default:
-        return '';
+        return 'text-purple-600 bg-purple-50 border-purple-200';
     }
   };
   
@@ -64,104 +59,113 @@ const HomePage: React.FC = () => {
   const isCoach = profile?.role === 'coach';
 
   return (
-    <div className="flex-1 pb-24"> {/* Increased bottom padding to prevent cutoff */}
-      <header className="bg-futsal-primary text-white p-4">
-        <h1 className="text-xl font-bold">
-          Boa {getTimeOfDay()}, {profile?.name?.split(' ')[0] || (profile?.role === 'coach' ? 'Treinador(a)' : 'Atleta')}
-        </h1>
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900">
+      {/* Header */}
+      <header className="bg-gradient-to-r from-purple-600 to-purple-800 text-white p-6 shadow-lg">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold mb-1">
+              Boa {getTimeOfDay()}, {profile?.name?.split(' ')[0] || (profile?.role === 'coach' ? 'Treinador(a)' : 'Atleta')}
+            </h1>
+            <p className="text-purple-200 text-sm">
+              {profile?.role === 'coach' ? 'Painel do Treinador' : 'Portal do Atleta'}
+            </p>
+          </div>
+          <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+            <span className="text-2xl font-bold">
+              {profile?.name?.charAt(0) || '?'}
+            </span>
+          </div>
+        </div>
       </header>
 
-      <main className="p-4 flex-1 pb-8"> {/* Added bottom padding */}
+      <main className="p-6 space-y-8 pb-32">
         {/* Coach Post Form */}
         {isCoach && (
-          <section className="mb-6">
+          <section className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-purple-700 flex items-center justify-center">
+                <Plus className="h-4 w-4 text-white" />
+              </div>
+              <h2 className="text-xl font-bold text-white">Nova Postagem</h2>
+            </div>
             <PostForm />
           </section>
         )}
 
         {/* Posts Section */}
-        <section className="mb-6">
-          <h2 className="text-lg font-semibold text-futsal-dark mb-2">Feed de notícias:</h2>
+        <section className="space-y-4">
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center">
+              <Bell className="h-4 w-4 text-white" />
+            </div>
+            <h2 className="text-xl font-bold text-white">Feed de Notícias</h2>
+          </div>
           <PostsList />
         </section>
 
         {/* Next Game Section */}
-        <section className="mb-6">
-          <h2 className="text-lg font-semibold text-futsal-dark mb-2">Próximo jogo:</h2>
-          {nextGame ? (
-            <div className="bg-white rounded-lg overflow-hidden border border-gray-200 shadow-sm">
-              <div className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-bold text-lg">
-                      {capitalize(formatDate(nextGame.date))}
-                    </h3>
-                    <div className="text-sm text-gray-600 mt-1">
-                      <p className="flex items-center">
-                        <span className="mr-1">📍</span> {nextGame.location}
-                      </p>
-                      <p className="flex items-center">
-                        <span className="mr-1">👕</span> Uniforme: {nextGame.uniform}
-                      </p>
-                      <p className="flex items-center">
-                        <span className="mr-1">🕒</span> Horário: {nextGame.time}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <div className="flex flex-col items-center">
-                      <img 
-                        src={nextGame.home_team_logo || "/placeholder.svg"} 
-                        alt="Home Team" 
-                        className="w-8 h-8 object-contain"
-                      />
-                      <span className="text-xs">Casa</span>
-                    </div>
-                    <div className="px-2">
-                      <div className="text-lg font-bold">
-                        {nextGame.homeScore ?? 0} - {nextGame.awayScore ?? 0}
-                      </div>
-                    </div>
-                    <div className="flex flex-col items-center">
-                      <img 
-                        src={nextGame.away_team_logo || "/placeholder.svg"} 
-                        alt="Away Team" 
-                        className="w-8 h-8 object-contain"
-                      />
-                      <span className="text-xs">{nextGame.opponent || 'Visitante'}</span>
-                    </div>
-                  </div>
-                </div>
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-green-700 flex items-center justify-center">
+                <Calendar className="h-4 w-4 text-white" />
               </div>
+              <h2 className="text-xl font-bold text-white">Próximo Jogo</h2>
             </div>
+            {isCoach && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate('/add?type=game')}
+                className="bg-white/10 border-white/30 text-white hover:bg-white/20"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Adicionar
+              </Button>
+            )}
+          </div>
+          
+          {nextGame ? (
+            <GameCard game={nextGame} />
           ) : (
-            <div className="bg-white rounded-lg p-4 text-center border border-gray-200">
-              <p>Não há jogos agendados.</p>
-            </div>
+            <Card className="bg-gradient-to-br from-white to-purple-50 border-0 shadow-lg">
+              <CardContent className="p-8 text-center">
+                <Calendar className="h-12 w-12 text-purple-400 mx-auto mb-4" />
+                <p className="text-purple-600 font-medium">Não há jogos agendados</p>
+                <p className="text-purple-400 text-sm mt-2">Os próximos jogos aparecerão aqui</p>
+              </CardContent>
+            </Card>
           )}
         </section>
 
         {/* Unread Announcements for Players */}
         {profile?.role === 'player' && unreadAnnouncements.length > 0 && (
-          <section className="mb-6">
-            <h2 className="text-lg font-semibold text-futsal-dark mb-2">Avisos não lidos:</h2>
+          <section className="space-y-4">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 flex items-center justify-center">
+                <Bell className="h-4 w-4 text-white" />
+              </div>
+              <h2 className="text-xl font-bold text-white">Avisos Importantes</h2>
+            </div>
+            
             <div className="space-y-3">
               {unreadAnnouncements.slice(0, 3).map(announcement => (
                 <Card 
                   key={announcement.id} 
-                  className="cursor-pointer hover:shadow-md transition-shadow"
+                  className={`cursor-pointer hover:shadow-lg transition-all duration-300 border-2 ${getPriorityColor(announcement.priority)}`}
                   onClick={() => handleAnnouncementClick(announcement)}
                 >
-                  <CardContent className="p-3">
+                  <CardContent className="p-4">
                     <div className="flex justify-between items-center">
-                      <h3 className={`font-bold ${getPriorityColor(announcement.priority)}`}>
+                      <h3 className="font-bold text-lg">
                         {announcement.title}
                       </h3>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded-full">
                         {format(parseISO(announcement.date), 'dd/MM')}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-700 line-clamp-2 mt-1">
+                    <p className="text-gray-700 line-clamp-2 mt-2">
                       {announcement.message}
                     </p>
                   </CardContent>
@@ -174,7 +178,7 @@ const HomePage: React.FC = () => {
                     variant="outline" 
                     size="sm"
                     onClick={() => navigate('/announcements')}
-                    className="text-futsal-primary"
+                    className="bg-white/10 border-white/30 text-white hover:bg-white/20"
                   >
                     Ver todos os {unreadAnnouncements.length} avisos
                   </Button>
@@ -185,61 +189,45 @@ const HomePage: React.FC = () => {
         )}
 
         {/* Latest Results Section */}
-        <section className="mb-8"> {/* Added margin bottom for final spacing */}
-          <div className="flex justify-between items-center mb-2">
-            <h2 className="text-lg font-semibold text-futsal-dark">Último resultado:</h2>
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-orange-500 to-red-500 flex items-center justify-center">
+                <Trophy className="h-4 w-4 text-white" />
+              </div>
+              <h2 className="text-xl font-bold text-white">Últimos Resultados</h2>
+            </div>
             {isCoach && (
               <Button 
                 variant="outline" 
                 size="sm"
                 onClick={() => navigate('/add?type=past-game')}
-                className="text-futsal-primary"
+                className="bg-white/10 border-white/30 text-white hover:bg-white/20"
               >
+                <Plus className="mr-2 h-4 w-4" />
                 Adicionar resultado
               </Button>
             )}
           </div>
           
-          {latestGame && (latestGame.homeScore !== null || latestGame.awayScore !== null) ? (
-            <div className="bg-futsal-light rounded-lg p-4">
-              <div className="flex justify-between items-center">
-                <div className="flex-1">
-                  <h3 className="text-lg font-bold text-green-500">
-                    {latestGame.homeScore > latestGame.awayScore ? 'Vitória!' : 
-                     latestGame.homeScore < latestGame.awayScore ? 'Derrota' : 'Empate'}
-                  </h3>
-                  <div className="text-sm">
-                    <p>{capitalize(formatDate(latestGame.date))}</p>
-                    <p>{latestGame.location}</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <div className="flex flex-col items-center">
-                    <img 
-                      src={latestGame.home_team_logo || "/placeholder.svg"} 
-                      alt="Home Team" 
-                      className="w-8 h-8 object-contain"
-                    />
-                    <span className="text-xs">Casa</span>
-                  </div>
-                  <div className="text-xl font-bold">
-                    {latestGame.homeScore} - {latestGame.awayScore}
-                  </div>
-                  <div className="flex flex-col items-center">
-                    <img 
-                      src={latestGame.away_team_logo || "/placeholder.svg"} 
-                      alt="Away Team" 
-                      className="w-8 h-8 object-contain"
-                    />
-                    <span className="text-xs">{latestGame.opponent || 'Visitante'}</span>
-                  </div>
-                </div>
-              </div>
+          {latestResults.length > 0 ? (
+            <div className="space-y-4">
+              {latestResults.map(game => (
+                <GameCard 
+                  key={game.id} 
+                  game={game} 
+                  showResult={true}
+                />
+              ))}
             </div>
           ) : (
-            <div className="bg-futsal-light rounded-lg p-4 text-center">
-              <p>Nenhum resultado disponível.</p>
-            </div>
+            <Card className="bg-gradient-to-br from-white to-purple-50 border-0 shadow-lg">
+              <CardContent className="p-8 text-center">
+                <Trophy className="h-12 w-12 text-purple-400 mx-auto mb-4" />
+                <p className="text-purple-600 font-medium">Nenhum resultado disponível</p>
+                <p className="text-purple-400 text-sm mt-2">Os resultados dos jogos aparecerão aqui</p>
+              </CardContent>
+            </Card>
           )}
         </section>
       </main>
