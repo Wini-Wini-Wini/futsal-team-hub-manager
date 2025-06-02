@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +12,8 @@ export interface Game {
   time: string;
   homeScore?: number;
   awayScore?: number;
+  home_team_logo?: string;
+  away_team_logo?: string;
 }
 
 export interface Training {
@@ -94,7 +95,9 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({ children }
         uniform: game.uniform || '',
         time: game.time,
         homeScore: game.home_score,
-        awayScore: game.away_score
+        awayScore: game.away_score,
+        home_team_logo: game.home_team_logo,
+        away_team_logo: game.away_team_logo
       }));
       setGames(formattedGames);
       
@@ -169,8 +172,10 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({ children }
           opponent: game.opponent,
           uniform: game.uniform,
           time: game.time,
-          home_score: 0,
-          away_score: 0,
+          home_score: game.homeScore || 0,
+          away_score: game.awayScore || 0,
+          home_team_logo: game.home_team_logo,
+          away_team_logo: game.away_team_logo,
           created_by: user.id
         })
         .select()
@@ -187,7 +192,9 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({ children }
         uniform: data.uniform || '',
         time: data.time,
         homeScore: data.home_score,
-        awayScore: data.away_score
+        awayScore: data.away_score,
+        home_team_logo: data.home_team_logo,
+        away_team_logo: data.away_team_logo
       };
       
       // Update local state
