@@ -5,6 +5,7 @@ import TabBar from '../components/TabBar';
 import { useData, Announcement } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
 import { format, parseISO } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { Edit, RefreshCw, AlertTriangle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -147,7 +148,7 @@ const AnnouncementsPage: React.FC = () => {
                           <div className="flex items-center space-x-2 text-sm text-purple-600">
                             <span className="font-medium">{announcement.author}</span>
                             <span>•</span>
-                            <span>{format(parseISO(announcement.date), "dd 'de' MMMM", { locale: require('date-fns/locale/pt-BR') })}</span>
+                            <span>{format(parseISO(announcement.date), "dd 'de' MMMM", { locale: ptBR })}</span>
                           </div>
                         </div>
                       </div>
