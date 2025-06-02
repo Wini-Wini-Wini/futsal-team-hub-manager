@@ -45,8 +45,8 @@ const PostCard: React.FC<PostCardProps> = ({ post, onDelete }) => {
   const { toast } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
   
-  const isCoach = profile?.role === 'coach';
-  const canDelete = isCoach && (post.created_by === user?.id);
+  // User can delete if they are the author of the post
+  const canDelete = user?.id === post.created_by;
   
   const formatDate = (dateStr: string) => {
     const date = parseISO(dateStr);

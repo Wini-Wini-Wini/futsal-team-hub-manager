@@ -71,10 +71,18 @@ const HomePage: React.FC = () => {
               {profile?.role === 'coach' ? 'Painel do Treinador' : 'Portal do Atleta'}
             </p>
           </div>
-          <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
-            <span className="text-2xl font-bold">
-              {profile?.name?.charAt(0) || '?'}
-            </span>
+          <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm overflow-hidden">
+            {profile?.avatar_url ? (
+              <img 
+                src={profile.avatar_url} 
+                alt="Profile" 
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-2xl font-bold">
+                {profile?.name?.charAt(0) || '?'}
+              </span>
+            )}
           </div>
         </div>
       </header>
