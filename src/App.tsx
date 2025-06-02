@@ -1,5 +1,4 @@
 
-import { createRoot } from 'react-dom/client';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -25,42 +24,39 @@ import React from 'react';
 // Create a new QueryClient instance
 const queryClient = new QueryClient();
 
-// Define App as a proper React functional component
-const App = () => {
+const App: React.FC = () => {
   return (
-    <React.StrictMode>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <AuthProvider>
-            <DataProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                <Routes>
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/register" element={<RegisterPage />} />
-                  
-                  <Route element={<Layout />}>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/agenda" element={<AgendaPage />} />
-                    <Route path="/announcements" element={<AnnouncementsPage />} />
-                    <Route path="/menu" element={<MenuPage />} />
-                    <Route path="/profile" element={<ProfilePage />} />
-                    <Route path="/add" element={<AddPage />} />
-                    <Route path="/edit-game/:id" element={<EditGamePage />} />
-                    <Route path="/edit-training/:id" element={<EditTrainingPage />} />
-                    <Route path="/edit-announcement/:id" element={<EditAnnouncementPage />} />
-                  </Route>
-                  
-                  <Route path="/404" element={<NotFound />} />
-                  <Route path="*" element={<Navigate to="/404" replace />} />
-                </Routes>
-              </TooltipProvider>
-            </DataProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </QueryClientProvider>
-    </React.StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <AuthProvider>
+          <DataProvider>
+            <TooltipProvider>
+              <Toaster />
+              <Sonner />
+              <Routes>
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                
+                <Route element={<Layout />}>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/agenda" element={<AgendaPage />} />
+                  <Route path="/announcements" element={<AnnouncementsPage />} />
+                  <Route path="/menu" element={<MenuPage />} />
+                  <Route path="/profile" element={<ProfilePage />} />
+                  <Route path="/add" element={<AddPage />} />
+                  <Route path="/edit-game/:id" element={<EditGamePage />} />
+                  <Route path="/edit-training/:id" element={<EditTrainingPage />} />
+                  <Route path="/edit-announcement/:id" element={<EditAnnouncementPage />} />
+                </Route>
+                
+                <Route path="/404" element={<NotFound />} />
+                <Route path="*" element={<Navigate to="/404" replace />} />
+              </Routes>
+            </TooltipProvider>
+          </DataProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 };
 
