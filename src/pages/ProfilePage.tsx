@@ -96,9 +96,8 @@ const ProfilePage: React.FC = () => {
       
       if (updateError) throw updateError;
       
-      // Update local profile state - fix the type issue by extending the profile
+      // Update local profile state
       await updateProfile({ 
-        ...profile,
         avatar_url: avatarUrl 
       });
       
@@ -159,9 +158,9 @@ const ProfilePage: React.FC = () => {
           <div className="flex justify-center mb-6">
             <div className="relative">
               <div className="w-24 h-24 rounded-full bg-futsal-primary flex items-center justify-center text-white text-2xl font-bold overflow-hidden">
-                {(profile as any)?.avatar_url ? (
+                {profile?.avatar_url ? (
                   <img 
-                    src={(profile as any).avatar_url} 
+                    src={profile.avatar_url} 
                     alt="Profile" 
                     className="w-full h-full object-cover"
                   />
@@ -206,9 +205,9 @@ const ProfilePage: React.FC = () => {
         <div className="flex justify-center mb-6">
           <div className="relative">
             <div className="w-24 h-24 rounded-full bg-futsal-primary flex items-center justify-center text-white text-2xl font-bold overflow-hidden">
-              {(profile as any)?.avatar_url ? (
+              {profile?.avatar_url ? (
                 <img 
-                  src={(profile as any).avatar_url} 
+                  src={profile.avatar_url} 
                   alt="Profile" 
                   className="w-full h-full object-cover"
                 />

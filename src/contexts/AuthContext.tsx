@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -13,6 +12,7 @@ export interface UserProfile {
   email: string;
   phone?: string;
   role: UserRole;
+  avatar_url?: string;
 }
 
 interface AuthContextType {
