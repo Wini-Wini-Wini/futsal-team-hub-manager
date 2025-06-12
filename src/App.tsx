@@ -1,5 +1,7 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { DataProvider } from './contexts/DataContext';
 import LoginPage from './pages/LoginPage';
@@ -14,15 +16,16 @@ import AddPage from './pages/AddPage';
 import EditGamePage from './pages/EditGamePage';
 import EditTrainingPage from './pages/EditTrainingPage';
 import EditAnnouncementPage from './pages/EditAnnouncementPage';
-import NotFound from './pages/NotFoundPage';
-import Layout from './components/Layout';
+import NotFound from './pages/NotFound';
+import { Layout } from './components/Layout';
 import Index from './pages/Index';
 import { Toaster } from "@/components/ui/toaster"
-import { QueryClient } from 'react-query';
+
+const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClient>
+    <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <DataProvider>
           <Toaster />
@@ -46,7 +49,7 @@ function App() {
           </Router>
         </DataProvider>
       </AuthProvider>
-    </QueryClient>
+    </QueryClientProvider>
   );
 }
 

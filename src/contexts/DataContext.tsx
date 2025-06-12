@@ -1,41 +1,50 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { useAuth } from './AuthContext';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useAuth } from './AuthContext';
 
 export interface Game {
   id: string;
+  title: string;
   date: string;
-  location: string;
-  opponent: string;
-  uniform: string;
   time: string;
-  homeScore?: number;
-  awayScore?: number;
-  home_team_logo?: string;
-  away_team_logo?: string;
+  location: string;
+  opponent?: string;
+  type: 'game';
+  created_at: string;
 }
 
 export interface Training {
   id: string;
+  title: string;
   date: string;
-  location: string;
-  uniform: string;
   time: string;
+  location: string;
+  description?: string;
+  type: 'training';
+  created_at: string;
 }
 
 export interface Announcement {
   id: string;
   title: string;
-  message: string;
-  date: string;
-  priority: 'high' | 'medium' | 'low';
-  author: string;
-  voting?: boolean;
-  read: string[];
-  votes?: {
-    yes: string[];
-    no: string[];
+  content: string;
+  created_at: string;
+  author: {
+    name: string;
+    role: string;
+  };
+}
+
+export interface Post {
+  id: string;
+  content: string;
+  image_url?: string;
+  created_at: string;
+  author: {
+    id: string;
+    name: string;
+    avatar_url?: string;
+    role: string;
   };
 }
 
@@ -45,25 +54,38 @@ export interface Feedback {
   target_type: 'game' | 'training';
   target_id: string;
   comment: string;
-  rating: number;
+  rating?: number;
   created_at: string;
+  profiles: {
+    name: string;
+    avatar_url?: string;
+  };
 }
 
 interface DataContextType {
   games: Game[];
   trainings: Training[];
   announcements: Announcement[];
-  isLoading: boolean;
-  addGame: (game: Omit<Game, 'id'>) => Promise<void>;
-  addTraining: (training: Omit<Training, 'id'>) => Promise<void>;
-  addAnnouncement: (announcement: Omit<Announcement, 'id' | 'read'>) => Promise<void>;
-  markAnnouncementAsRead: (id: string) => Promise<void>;
-  voteOnAnnouncement: (id: string, vote: 'yes' | 'no') => Promise<void>;
-  getReadAnnouncements: () => Announcement[];
-  getUnreadAnnouncements: () => Announcement[];
-  fetchData: () => Promise<void>;
-  addFeedback: (feedback: Omit<Feedback, 'id' | 'created_at'>) => Promise<void>;
-  getFeedbacks: (targetType: 'game' | 'training', targetId: string) => Promise<Feedback[]>;
+  posts: Post[];
+  feedback: Feedback[];
+  loading: boolean;
+  fetchGames: () => Promise<void>;
+  fetchTrainings: () => Promise<void>;
+  fetchAnnouncements: () => Promise<void>;
+  fetchPosts: () => Promise<void>;
+  fetchFeedback: (targetType: 'game' | 'training', targetId: string) => Promise<Feedback[]>;
+  addGame: (game: Omit<Game, 'id' | 'created_at' | 'type'>) => Promise<boolean>;
+  addTraining: (training: Omit<Training, 'id' | 'created_at' | 'type'>) => Promise<boolean>;
+  addAnnouncement: (announcement: Omit<Announcement, 'id' | 'created_at' | 'author'>) => Promise<boolean>;
+  addPost: (post: Omit<Post, 'id' | 'created_at' | 'author'>) => Promise<boolean>;
+  addFeedback: (feedback: Omit<Feedback, 'id' | 'created_at' | 'profiles'>) => Promise<boolean>;
+  updateGame: (id: string, game: Partial<Game>) => Promise<boolean>;
+  updateTraining: (id: string, training: Partial<Training>) => Promise<boolean>;
+  updateAnnouncement: (id: string, announcement: Partial<Announcement>) => Promise<boolean>;
+  deleteGame: (id: string) => Promise<boolean>;
+  deleteTraining: (id: string) => Promise<boolean>;
+  deleteAnnouncement: (id: string) => Promise<boolean>;
+  deletePost: (id: string) => Promise<boolean>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -76,401 +98,385 @@ export const useData = () => {
   return context;
 };
 
-export const DataProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
-  const { user, profile } = useAuth();
-  const { toast } = useToast();
-  const [isLoading, setIsLoading] = useState(true);
-  
-  // State for data
+export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [games, setGames] = useState<Game[]>([]);
   const [trainings, setTrainings] = useState<Training[]>([]);
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [feedback, setFeedback] = useState<Feedback[]>([]);
+  const [loading, setLoading] = useState(false);
+  const { user, profile } = useAuth();
 
   // Fetch data from Supabase
-  const fetchData = async () => {
-    setIsLoading(true);
+  const fetchGames = async () => {
     try {
-      // Fetch games
-      const { data: gamesData, error: gamesError } = await supabase
+      setLoading(true);
+      const { data, error } = await supabase
         .from('games')
         .select('*')
         .order('date', { ascending: true });
-      
-      if (gamesError) throw gamesError;
-      
-      // Format game data
-      const formattedGames: Game[] = gamesData.map(game => ({
-        id: game.id,
-        date: game.date,
-        location: game.location,
-        opponent: game.opponent || '',
-        uniform: game.uniform || '',
-        time: game.time,
-        homeScore: game.home_score,
-        awayScore: game.away_score,
-        home_team_logo: game.home_team_logo,
-        away_team_logo: game.away_team_logo
-      }));
-      setGames(formattedGames);
-      
-      // Fetch trainings
-      const { data: trainingsData, error: trainingsError } = await supabase
-        .from('trainings')
-        .select('*')
-        .order('date', { ascending: true });
-      
-      if (trainingsError) throw trainingsError;
-      
-      // Format training data
-      const formattedTrainings: Training[] = trainingsData.map(training => ({
-        id: training.id,
-        date: training.date,
-        location: training.location,
-        uniform: training.uniform || '',
-        time: training.time
-      }));
-      setTrainings(formattedTrainings);
-      
-      // Fetch announcements
-      const { data: announcementsData, error: announcementsError } = await supabase
-        .from('announcements')
-        .select('*')
-        .order('date', { ascending: false });
-      
-      if (announcementsError) throw announcementsError;
-      
-      // Format announcement data
-      const formattedAnnouncements: Announcement[] = announcementsData.map(announcement => ({
-        id: announcement.id,
-        title: announcement.title,
-        message: announcement.message,
-        date: announcement.date,
-        priority: announcement.priority as 'high' | 'medium' | 'low',
-        author: announcement.author,
-        voting: announcement.voting || false,
-        read: announcement.read || [],
-        votes: announcement.votes as { yes: string[], no: string[] } || { yes: [], no: [] }
-      }));
-      setAnnouncements(formattedAnnouncements);
-      
+
+      if (error) throw error;
+      setGames(data || []);
     } catch (error) {
-      console.error('Error fetching data:', error);
-      toast({
-        title: "Erro ao carregar dados",
-        description: "Ocorreu um erro ao carregar os dados",
-        variant: "destructive"
-      });
+      console.error('Error fetching games:', error);
     } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  // Initial data fetch
-  useEffect(() => {
-    fetchData();
-  }, [user?.id]);
-
-  const addGame = async (game: Omit<Game, 'id'>) => {
-    try {
-      if (!user?.id) {
-        throw new Error('Usuário não autenticado');
-      }
-      
-      const { data, error } = await supabase
-        .from('games')
-        .insert({
-          date: game.date,
-          location: game.location,
-          opponent: game.opponent,
-          uniform: game.uniform,
-          time: game.time,
-          home_score: game.homeScore || 0,
-          away_score: game.awayScore || 0,
-          home_team_logo: game.home_team_logo,
-          away_team_logo: game.away_team_logo,
-          created_by: user.id
-        })
-        .select()
-        .single();
-      
-      if (error) throw error;
-      
-      // Format the returned game
-      const newGame: Game = {
-        id: data.id,
-        date: data.date,
-        location: data.location,
-        opponent: data.opponent || '',
-        uniform: data.uniform || '',
-        time: data.time,
-        homeScore: data.home_score,
-        awayScore: data.away_score,
-        home_team_logo: data.home_team_logo,
-        away_team_logo: data.away_team_logo
-      };
-      
-      // Update local state
-      setGames(prev => [...prev, newGame]);
-      
-    } catch (error) {
-      console.error('Error adding game:', error);
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao adicionar o jogo",
-        variant: "destructive"
-      });
-      throw error;
+      setLoading(false);
     }
   };
 
-  const addTraining = async (training: Omit<Training, 'id'>) => {
+  const fetchTrainings = async () => {
     try {
-      if (!user?.id) {
-        throw new Error('Usuário não autenticado');
-      }
-      
+      setLoading(true);
       const { data, error } = await supabase
         .from('trainings')
-        .insert({
-          date: training.date,
-          location: training.location,
-          uniform: training.uniform,
-          time: training.time,
-          created_by: user.id
-        })
-        .select()
-        .single();
-      
-      if (error) throw error;
-      
-      // Format the returned training
-      const newTraining: Training = {
-        id: data.id,
-        date: data.date,
-        location: data.location,
-        uniform: data.uniform || '',
-        time: data.time
-      };
-      
-      // Update local state
-      setTrainings(prev => [...prev, newTraining]);
-      
-    } catch (error) {
-      console.error('Error adding training:', error);
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao adicionar o treino",
-        variant: "destructive"
-      });
-      throw error;
-    }
-  };
-
-  const addAnnouncement = async (announcement: Omit<Announcement, 'id' | 'read'>) => {
-    try {
-      if (!user?.id) {
-        throw new Error('Usuário não autenticado');
-      }
-      
-      const { data, error } = await supabase
-        .from('announcements')
-        .insert({
-          title: announcement.title,
-          message: announcement.message,
-          date: announcement.date,
-          priority: announcement.priority,
-          author: announcement.author,
-          voting: announcement.voting || false,
-          created_by: user.id,
-          read: [],
-          votes: { yes: [], no: [] }
-        })
-        .select()
-        .single();
-      
-      if (error) throw error;
-      
-      // Format the returned announcement
-      const newAnnouncement: Announcement = {
-        id: data.id,
-        title: data.title,
-        message: data.message,
-        date: data.date,
-        priority: data.priority as 'high' | 'medium' | 'low',
-        author: data.author,
-        voting: data.voting || false,
-        read: data.read || [],
-        votes: data.votes as { yes: string[], no: string[] } || { yes: [], no: [] }
-      };
-      
-      // Update local state
-      setAnnouncements(prev => [...prev, newAnnouncement]);
-      
-    } catch (error) {
-      console.error('Error adding announcement:', error);
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao adicionar o aviso",
-        variant: "destructive"
-      });
-      throw error;
-    }
-  };
-
-  const markAnnouncementAsRead = async (id: string) => {
-    if (!user?.id) return;
-    
-    try {
-      // Find the announcement locally
-      const announcement = announcements.find(a => a.id === id);
-      if (!announcement) return;
-      
-      // Don't update if already read by this user
-      if (announcement.read.includes(user.id)) return;
-      
-      // Add user to the read array
-      const updatedRead = [...announcement.read, user.id];
-      
-      // Update the database
-      const { error } = await supabase
-        .from('announcements')
-        .update({ read: updatedRead })
-        .eq('id', id);
-      
-      if (error) throw error;
-      
-      // Update local state
-      setAnnouncements(prev => 
-        prev.map(ann => 
-          ann.id === id ? { ...ann, read: updatedRead } : ann
-        )
-      );
-      
-    } catch (error) {
-      console.error('Error marking announcement as read:', error);
-    }
-  };
-
-  const voteOnAnnouncement = async (id: string, vote: 'yes' | 'no') => {
-    if (!user?.id) return;
-    
-    try {
-      // Find the announcement locally
-      const announcement = announcements.find(a => a.id === id);
-      if (!announcement || !announcement.votes) return;
-      
-      // Remove user from both vote lists first
-      const filteredYes = announcement.votes.yes.filter(userId => userId !== user.id);
-      const filteredNo = announcement.votes.no.filter(userId => userId !== user.id);
-      
-      // Add user to the appropriate vote list
-      const updatedVotes = {
-        yes: vote === 'yes' ? [...filteredYes, user.id] : filteredYes,
-        no: vote === 'no' ? [...filteredNo, user.id] : filteredNo
-      };
-      
-      // Update the database
-      const { error } = await supabase
-        .from('announcements')
-        .update({ votes: updatedVotes })
-        .eq('id', id);
-      
-      if (error) throw error;
-      
-      // Update local state
-      setAnnouncements(prev => 
-        prev.map(ann => 
-          ann.id === id ? { ...ann, votes: updatedVotes } : ann
-        )
-      );
-      
-    } catch (error) {
-      console.error('Error voting on announcement:', error);
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao registrar seu voto",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const getReadAnnouncements = () => {
-    if (!user?.id) return [];
-    return announcements.filter((ann) => ann.read.includes(user.id));
-  };
-
-  const getUnreadAnnouncements = () => {
-    if (!user?.id) return [];
-    return announcements.filter((ann) => !ann.read.includes(user.id));
-  };
-
-  const addFeedback = async (feedback: Omit<Feedback, 'id' | 'created_at'>) => {
-    try {
-      if (!user?.id) {
-        throw new Error('Usuário não autenticado');
-      }
-      
-      const { error } = await supabase
-        .from('feedback')
-        .insert({
-          user_id: feedback.user_id,
-          target_type: feedback.target_type,
-          target_id: feedback.target_id,
-          comment: feedback.comment,
-          rating: feedback.rating
-        });
-      
-      if (error) throw error;
-      
-    } catch (error) {
-      console.error('Error adding feedback:', error);
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao adicionar o feedback",
-        variant: "destructive"
-      });
-      throw error;
-    }
-  };
-
-  const getFeedbacks = async (targetType: 'game' | 'training', targetId: string): Promise<Feedback[]> => {
-    try {
-      const { data, error } = await supabase
-        .from('feedback')
         .select('*')
+        .order('date', { ascending: true });
+
+      if (error) throw error;
+      setTrainings(data || []);
+    } catch (error) {
+      console.error('Error fetching trainings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAnnouncements = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('announcements')
+        .select(`
+          *,
+          profiles:author_id (
+            name,
+            role
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      const formattedAnnouncements = data?.map(item => ({
+        id: item.id,
+        title: item.title,
+        content: item.content,
+        created_at: item.created_at,
+        author: {
+          name: item.profiles?.name || 'Unknown',
+          role: item.profiles?.role || 'unknown'
+        }
+      })) || [];
+
+      setAnnouncements(formattedAnnouncements);
+    } catch (error) {
+      console.error('Error fetching announcements:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchPosts = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('posts')
+        .select(`
+          *,
+          profiles:author_id (
+            id,
+            name,
+            avatar_url,
+            role
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      const formattedPosts = data?.map(item => ({
+        id: item.id,
+        content: item.content,
+        image_url: item.image_url,
+        created_at: item.created_at,
+        author: {
+          id: item.profiles?.id || '',
+          name: item.profiles?.name || 'Unknown',
+          avatar_url: item.profiles?.avatar_url,
+          role: item.profiles?.role || 'unknown'
+        }
+      })) || [];
+
+      setPosts(formattedPosts);
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchFeedback = async (targetType: 'game' | 'training', targetId: string): Promise<Feedback[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('feedback')
+        .select(`
+          *,
+          profiles:user_id (
+            name,
+            avatar_url
+          )
+        `)
         .eq('target_type', targetType)
         .eq('target_id', targetId)
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
-      
-      return data || [];
-      
+      return data as Feedback[] || [];
     } catch (error) {
-      console.error('Error fetching feedbacks:', error);
+      console.error('Error fetching feedback:', error);
       return [];
     }
   };
 
+  // Add functions
+  const addGame = async (gameData: Omit<Game, 'id' | 'created_at' | 'type'>): Promise<boolean> => {
+    if (!user) return false;
+    
+    try {
+      const { error } = await supabase
+        .from('games')
+        .insert([{ ...gameData, author_id: user.id }]);
+
+      if (error) throw error;
+      await fetchGames();
+      return true;
+    } catch (error) {
+      console.error('Error adding game:', error);
+      return false;
+    }
+  };
+
+  const addTraining = async (trainingData: Omit<Training, 'id' | 'created_at' | 'type'>): Promise<boolean> => {
+    if (!user) return false;
+    
+    try {
+      const { error } = await supabase
+        .from('trainings')
+        .insert([{ ...trainingData, author_id: user.id }]);
+
+      if (error) throw error;
+      await fetchTrainings();
+      return true;
+    } catch (error) {
+      console.error('Error adding training:', error);
+      return false;
+    }
+  };
+
+  const addAnnouncement = async (announcementData: Omit<Announcement, 'id' | 'created_at' | 'author'>): Promise<boolean> => {
+    if (!user) return false;
+    
+    try {
+      const { error } = await supabase
+        .from('announcements')
+        .insert([{ ...announcementData, author_id: user.id }]);
+
+      if (error) throw error;
+      await fetchAnnouncements();
+      return true;
+    } catch (error) {
+      console.error('Error adding announcement:', error);
+      return false;
+    }
+  };
+
+  const addPost = async (postData: Omit<Post, 'id' | 'created_at' | 'author'>): Promise<boolean> => {
+    if (!user) return false;
+    
+    try {
+      const { error } = await supabase
+        .from('posts')
+        .insert([{ 
+          content: postData.content,
+          image_url: postData.image_url,
+          author_id: user.id 
+        }]);
+
+      if (error) throw error;
+      await fetchPosts();
+      return true;
+    } catch (error) {
+      console.error('Error adding post:', error);
+      return false;
+    }
+  };
+
+  const addFeedback = async (feedbackData: Omit<Feedback, 'id' | 'created_at' | 'profiles'>): Promise<boolean> => {
+    if (!user) return false;
+    
+    try {
+      const { error } = await supabase
+        .from('feedback')
+        .insert([feedbackData]);
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error adding feedback:', error);
+      return false;
+    }
+  };
+
+  // Update functions
+  const updateGame = async (id: string, gameData: Partial<Game>): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('games')
+        .update(gameData)
+        .eq('id', id);
+
+      if (error) throw error;
+      await fetchGames();
+      return true;
+    } catch (error) {
+      console.error('Error updating game:', error);
+      return false;
+    }
+  };
+
+  const updateTraining = async (id: string, trainingData: Partial<Training>): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('trainings')
+        .update(trainingData)
+        .eq('id', id);
+
+      if (error) throw error;
+      await fetchTrainings();
+      return true;
+    } catch (error) {
+      console.error('Error updating training:', error);
+      return false;
+    }
+  };
+
+  const updateAnnouncement = async (id: string, announcementData: Partial<Announcement>): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('announcements')
+        .update(announcementData)
+        .eq('id', id);
+
+      if (error) throw error;
+      await fetchAnnouncements();
+      return true;
+    } catch (error) {
+      console.error('Error updating announcement:', error);
+      return false;
+    }
+  };
+
+  // Delete functions
+  const deleteGame = async (id: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('games')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      await fetchGames();
+      return true;
+    } catch (error) {
+      console.error('Error deleting game:', error);
+      return false;
+    }
+  };
+
+  const deleteTraining = async (id: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('trainings')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      await fetchTrainings();
+      return true;
+    } catch (error) {
+      console.error('Error deleting training:', error);
+      return false;
+    }
+  };
+
+  const deleteAnnouncement = async (id: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('announcements')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      await fetchAnnouncements();
+      return true;
+    } catch (error) {
+      console.error('Error deleting announcement:', error);
+      return false;
+    }
+  };
+
+  const deletePost = async (id: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('posts')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      await fetchPosts();
+      return true;
+    } catch (error) {
+      console.error('Error deleting post:', error);
+      return false;
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchGames();
+      fetchTrainings();
+      fetchAnnouncements();
+      fetchPosts();
+    }
+  }, [user]);
+
   return (
-    <DataContext.Provider
-      value={{
-        games,
-        trainings,
-        announcements,
-        isLoading,
-        addGame,
-        addTraining,
-        addAnnouncement,
-        markAnnouncementAsRead,
-        voteOnAnnouncement,
-        getReadAnnouncements,
-        getUnreadAnnouncements,
-        fetchData,
-        addFeedback,
-        getFeedbacks
-      }}
-    >
+    <DataContext.Provider value={{
+      games,
+      trainings,
+      announcements,
+      posts,
+      feedback,
+      loading,
+      fetchGames,
+      fetchTrainings,
+      fetchAnnouncements,
+      fetchPosts,
+      fetchFeedback,
+      addGame,
+      addTraining,
+      addAnnouncement,
+      addPost,
+      addFeedback,
+      updateGame,
+      updateTraining,
+      updateAnnouncement,
+      deleteGame,
+      deleteTraining,
+      deleteAnnouncement,
+      deletePost
+    }}>
       {children}
     </DataContext.Provider>
   );
