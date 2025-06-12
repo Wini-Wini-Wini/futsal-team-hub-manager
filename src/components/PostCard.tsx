@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Trash2, MoreVertical } from 'lucide-react';
@@ -101,19 +102,16 @@ const PostCard: React.FC<PostCardProps> = ({ post, onDelete }) => {
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
-              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-purple-800 flex items-center justify-center text-white shadow-lg overflow-hidden">
-                {profile?.avatar_url ? (
-                  <img 
-                    src={profile.avatar_url} 
-                    alt="Profile" 
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <span className="text-lg font-bold">
-                    {post.author_name?.charAt(0) || '?'}
-                  </span>
-                )}
-              </div>
+              <Avatar className="w-12 h-12">
+                <AvatarImage 
+                  src={profile?.avatar_url || ''} 
+                  alt="Profile picture" 
+                />
+                <AvatarFallback className="bg-gradient-to-br from-purple-600 to-purple-800 text-white font-bold">
+                  {post.author_name?.charAt(0) || '?'}
+                </AvatarFallback>
+              </Avatar>
+              
               <div className="ml-4">
                 <p className="font-bold text-gray-900">{post.author_name || 'Treinador'}</p>
                 <p className="text-sm text-purple-600 font-medium">{formatDate(post.created_at)}</p>

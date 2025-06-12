@@ -39,6 +39,16 @@ export interface Announcement {
   };
 }
 
+export interface Feedback {
+  id: string;
+  user_id: string;
+  target_type: 'game' | 'training';
+  target_id: string;
+  comment: string;
+  rating: number;
+  created_at: string;
+}
+
 interface DataContextType {
   games: Game[];
   trainings: Training[];
@@ -52,6 +62,8 @@ interface DataContextType {
   getReadAnnouncements: () => Announcement[];
   getUnreadAnnouncements: () => Announcement[];
   fetchData: () => Promise<void>;
+  addFeedback: (feedback: Omit<Feedback, 'id' | 'created_at'>) => Promise<void>;
+  getFeedbacks: (targetType: 'game' | 'training', targetId: string) => Promise<Feedback[]>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -392,6 +404,54 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({ children }
     return announcements.filter((ann) => !ann.read.includes(user.id));
   };
 
+  const addFeedback = async (feedback: Omit<Feedback, 'id' | 'created_at'>) => {
+    try {
+      if (!user?.id) {
+        throw new Error('Usuário não autenticado');
+      }
+      
+      const { error } = await supabase
+        .from('feedback')
+        .insert({
+          user_id: feedback.user_id,
+          target_type: feedback.target_type,
+          target_id: feedback.target_id,
+          comment: feedback.comment,
+          rating: feedback.rating
+        });
+      
+      if (error) throw error;
+      
+    } catch (error) {
+      console.error('Error adding feedback:', error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao adicionar o feedback",
+        variant: "destructive"
+      });
+      throw error;
+    }
+  };
+
+  const getFeedbacks = async (targetType: 'game' | 'training', targetId: string): Promise<Feedback[]> => {
+    try {
+      const { data, error } = await supabase
+        .from('feedback')
+        .select('*')
+        .eq('target_type', targetType)
+        .eq('target_id', targetId)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      return data || [];
+      
+    } catch (error) {
+      console.error('Error fetching feedbacks:', error);
+      return [];
+    }
+  };
+
   return (
     <DataContext.Provider
       value={{
@@ -406,7 +466,9 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({ children }
         voteOnAnnouncement,
         getReadAnnouncements,
         getUnreadAnnouncements,
-        fetchData
+        fetchData,
+        addFeedback,
+        getFeedbacks
       }}
     >
       {children}
