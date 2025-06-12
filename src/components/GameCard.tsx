@@ -14,11 +14,11 @@ interface Game {
   id: string;
   date: string;
   location: string;
-  opponent: string;
-  uniform: string;
+  opponent?: string;
+  uniform?: string;
   time: string;
-  homeScore?: number;
-  awayScore?: number;
+  home_score?: number;
+  away_score?: number;
   home_team_logo?: string;
   away_team_logo?: string;
 }
@@ -32,13 +32,13 @@ const GameCard: React.FC<GameCardProps> = ({ game, showResult = false }) => {
   const { profile } = useAuth();
   const navigate = useNavigate();
   const [showFeedback, setShowFeedback] = useState(false);
-  const [feedbackRefresh, setFeedbackRefresh] = useState(0);
+  const [feedbackKey, setFeedbackKey] = useState(0);
   
   const isCoach = profile?.role === 'coach';
   const isPlayer = profile?.role === 'player';
   const gameDate = parseISO(game.date);
   const isPastGame = gameDate < new Date();
-  const hasResult = game.homeScore !== null && game.awayScore !== null;
+  const hasResult = game.home_score !== null && game.away_score !== null;
   
   const formatDate = (dateStr: string) => {
     const date = parseISO(dateStr);
@@ -55,7 +55,7 @@ const GameCard: React.FC<GameCardProps> = ({ game, showResult = false }) => {
   const { dayOfWeek, date } = formatDate(game.date);
   
   const handleFeedbackSubmitted = () => {
-    setFeedbackRefresh(prev => prev + 1);
+    setFeedbackKey(prev => prev + 1);
   };
 
   return (
@@ -80,7 +80,7 @@ const GameCard: React.FC<GameCardProps> = ({ game, showResult = false }) => {
                     )}
                     <p className="text-sm font-medium text-purple-800">Casa</p>
                     {showResult && hasResult && (
-                      <p className="text-2xl font-bold text-purple-900">{game.homeScore}</p>
+                      <p className="text-2xl font-bold text-purple-900">{game.home_score}</p>
                     )}
                   </div>
                   
@@ -98,7 +98,7 @@ const GameCard: React.FC<GameCardProps> = ({ game, showResult = false }) => {
                     )}
                     <p className="text-sm font-medium text-purple-800">{game.opponent}</p>
                     {showResult && hasResult && (
-                      <p className="text-2xl font-bold text-purple-900">{game.awayScore}</p>
+                      <p className="text-2xl font-bold text-purple-900">{game.away_score}</p>
                     )}
                   </div>
                 </div>
@@ -176,9 +176,9 @@ const GameCard: React.FC<GameCardProps> = ({ game, showResult = false }) => {
             onFeedbackSubmitted={handleFeedbackSubmitted}
           />
           <FeedbackList
+            key={feedbackKey}
             targetType="game"
             targetId={game.id}
-            refreshTrigger={feedbackRefresh}
           />
         </div>
       )}

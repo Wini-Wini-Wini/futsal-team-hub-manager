@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import Header from '../components/Header';
 import TabBar from '../components/TabBar';
-import { useData, Training } from '../contexts/DataContext';
+import { useData } from '../contexts/DataContext';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
@@ -17,7 +17,7 @@ import FeedbackList from '@/components/FeedbackList';
 const AgendaPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [expandedTraining, setExpandedTraining] = useState<string | null>(null);
-  const [feedbackRefresh, setFeedbackRefresh] = useState(0);
+  const [feedbackKey, setFeedbackKey] = useState(0);
   const { games, trainings, isLoading, fetchData } = useData();
   const { profile } = useAuth();
   const navigate = useNavigate();
@@ -35,7 +35,7 @@ const AgendaPage: React.FC = () => {
   const pastTrainings = [...trainings]
     .filter(training => new Date(training.date) < new Date())
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 5); // Show last 5 past trainings
+    .slice(0, 5);
 
   const formatDate = (dateStr: string) => {
     const date = parseISO(dateStr);
@@ -57,7 +57,7 @@ const AgendaPage: React.FC = () => {
   };
 
   const handleFeedbackSubmitted = () => {
-    setFeedbackRefresh(prev => prev + 1);
+    setFeedbackKey(prev => prev + 1);
   };
 
   const toggleTrainingFeedback = (trainingId: string) => {
@@ -228,9 +228,9 @@ const AgendaPage: React.FC = () => {
                             onFeedbackSubmitted={handleFeedbackSubmitted}
                           />
                           <FeedbackList
+                            key={`${training.id}-${feedbackKey}`}
                             targetType="training"
                             targetId={training.id}
-                            refreshTrigger={feedbackRefresh}
                           />
                         </div>
                       )}
