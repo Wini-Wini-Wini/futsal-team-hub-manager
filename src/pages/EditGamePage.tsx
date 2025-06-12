@@ -8,9 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import Header from '../components/Header';
-import { Loader2, Trash2, Upload } from 'lucide-react';
+import { Loader2, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { v4 as uuidv4 } from 'uuid';
 
 const EditGamePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,7 +19,6 @@ const EditGamePage: React.FC = () => {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isUploadingLogo, setIsUploadingLogo] = useState<'home' | 'away' | null>(null);
   
   const [gameForm, setGameForm] = useState({
     date: '',
@@ -28,18 +26,15 @@ const EditGamePage: React.FC = () => {
     opponent: '',
     uniform: '',
     time: '',
-    homeScore: 0,
-    awayScore: 0,
-    homeTeamLogo: '',
-    awayTeamLogo: ''
+    home_score: 0,
+    away_score: 0
   });
   
   // Only coaches can edit content
-  useEffect(() => {
-    if (profile?.role !== 'coach') {
-      navigate('/');
-    }
-  }, [profile, navigate]);
+  if (profile?.role !== 'coach') {
+    navigate('/');
+    return null;
+  }
   
   // Load game data
   useEffect(() => {
@@ -52,10 +47,8 @@ const EditGamePage: React.FC = () => {
           opponent: game.opponent || '',
           uniform: game.uniform || '',
           time: game.time,
-          homeScore: game.homeScore || 0,
-          awayScore: game.awayScore || 0,
-          homeTeamLogo: game.home_team_logo || '',
-          awayTeamLogo: game.away_team_logo || ''
+          home_score: game.home_score || 0,
+          away_score: game.away_score || 0
         });
         setIsLoading(false);
       } else {
@@ -68,71 +61,16 @@ const EditGamePage: React.FC = () => {
         navigate('/agenda');
       }
     }
-  }, [id, games, toast, navigate]);
+  }, [id, games]);
   
-  if (!profile || profile.role !== 'coach') {
-    return null;
-  }
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target as HTMLInputElement;
+    const { name, value, type } = e.target;
     
     if (type === 'number') {
-      setGameForm(prev => ({ 
-        ...prev, 
-        [name]: parseInt(value) || 0 
-      }));
+      setGameForm(prev => ({ ...prev, [name]: parseInt(value) || 0 }));
     } else {
       setGameForm(prev => ({ ...prev, [name]: value }));
-    }
-  };
-
-  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>, team: 'home' | 'away') => {
-    if (!e.target.files || !e.target.files[0] || !user) return;
-    
-    const file = e.target.files[0];
-    setIsUploadingLogo(team);
-    
-    try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${team}-team-${uuidv4()}.${fileExt}`;
-      const filePath = `${user.id}/${fileName}`;
-      
-      const { error: uploadError } = await supabase
-        .storage
-        .from('teams')
-        .upload(filePath, file);
-      
-      if (uploadError) throw uploadError;
-
-      // Get public URL for the file
-      const { data: publicUrlData } = supabase
-        .storage
-        .from('teams')
-        .getPublicUrl(filePath);
-        
-      const logoUrl = publicUrlData.publicUrl;
-      
-      // Update form state
-      setGameForm(prev => ({
-        ...prev,
-        [team === 'home' ? 'homeTeamLogo' : 'awayTeamLogo']: logoUrl
-      }));
-      
-      toast({
-        title: "Logo enviada",
-        description: `Logo do time ${team === 'home' ? 'da casa' : 'visitante'} foi enviada com sucesso`,
-      });
-      
-    } catch (error) {
-      console.error('Error uploading logo:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível enviar a logo do time",
-        variant: "destructive"
-      });
-    } finally {
-      setIsUploadingLogo(null);
     }
   };
   
@@ -156,10 +94,8 @@ const EditGamePage: React.FC = () => {
           opponent: gameForm.opponent,
           uniform: gameForm.uniform,
           time: gameForm.time,
-          home_score: gameForm.homeScore,
-          away_score: gameForm.awayScore,
-          home_team_logo: gameForm.homeTeamLogo,
-          away_team_logo: gameForm.awayTeamLogo
+          home_score: gameForm.home_score,
+          away_score: gameForm.away_score
         })
         .eq('id', id);
       
@@ -235,13 +171,10 @@ const EditGamePage: React.FC = () => {
     );
   }
 
+  
   return (
     <div className="flex-1 pb-20">
-      <Header 
-        title="Editar Jogo" 
-        showBackButton={true}
-        showHomeButton={true} 
-      />
+      <Header title="Editar Jogo" showBackButton={true} />
       
       <div className="p-4">
         <Card>
@@ -267,7 +200,7 @@ const EditGamePage: React.FC = () => {
                   name="location"
                   value={gameForm.location}
                   onChange={handleChange}
-                  placeholder="Ginásio AABB"
+                  placeholder="Quadra do Exponencial"
                   required
                 />
               </div>
@@ -280,24 +213,20 @@ const EditGamePage: React.FC = () => {
                   name="opponent"
                   value={gameForm.opponent}
                   onChange={handleChange}
-                  placeholder="Nome do adversário"
+                  placeholder="Nome do time adversário"
                 />
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="uniform">Uniforme</Label>
-                <select
+                <Input
                   id="uniform"
+                  type="text"
                   name="uniform"
                   value={gameForm.uniform}
                   onChange={handleChange}
-                  className="w-full border rounded-md px-3 py-2"
-                >
-                  <option value="">Selecione o uniforme</option>
-                  <option value="A">Uniforme A</option>
-                  <option value="B">Uniforme B</option>
-                  <option value="C">Uniforme C</option>
-                </select>
+                  placeholder="Uniforme principal"
+                />
               </div>
               
               <div className="space-y-2">
@@ -311,80 +240,29 @@ const EditGamePage: React.FC = () => {
                   required
                 />
               </div>
-
-              {/* Team Logos Section */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Logo Time da Casa</Label>
-                  <div className="flex flex-col items-center space-y-2">
-                    {gameForm.homeTeamLogo && (
-                      <img 
-                        src={gameForm.homeTeamLogo} 
-                        alt="Home team logo" 
-                        className="w-16 h-16 object-contain"
-                      />
-                    )}
-                    <label className="cursor-pointer bg-gray-100 border rounded-md px-3 py-2 text-sm flex items-center gap-2">
-                      <Upload size={16} />
-                      {isUploadingLogo === 'home' ? 'Enviando...' : 'Enviar Logo'}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => handleLogoUpload(e, 'home')}
-                        disabled={isUploadingLogo === 'home'}
-                      />
-                    </label>
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label>Logo Time Visitante</Label>
-                  <div className="flex flex-col items-center space-y-2">
-                    {gameForm.awayTeamLogo && (
-                      <img 
-                        src={gameForm.awayTeamLogo} 
-                        alt="Away team logo" 
-                        className="w-16 h-16 object-contain"
-                      />
-                    )}
-                    <label className="cursor-pointer bg-gray-100 border rounded-md px-3 py-2 text-sm flex items-center gap-2">
-                      <Upload size={16} />
-                      {isUploadingLogo === 'away' ? 'Enviando...' : 'Enviar Logo'}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => handleLogoUpload(e, 'away')}
-                        disabled={isUploadingLogo === 'away'}
-                      />
-                    </label>
-                  </div>
-                </div>
-              </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="homeScore">Placar Casa</Label>
+                  <Label htmlFor="home_score">Placar Casa</Label>
                   <Input
-                    id="homeScore"
+                    id="home_score"
                     type="number"
-                    name="homeScore"
-                    min="0"
-                    value={gameForm.homeScore}
+                    name="home_score"
+                    value={gameForm.home_score}
                     onChange={handleChange}
+                    min="0"
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="awayScore">Placar Visitante</Label>
+                  <Label htmlFor="away_score">Placar Visitante</Label>
                   <Input
-                    id="awayScore"
+                    id="away_score"
                     type="number"
-                    name="awayScore"
-                    min="0"
-                    value={gameForm.awayScore}
+                    name="away_score"
+                    value={gameForm.away_score}
                     onChange={handleChange}
+                    min="0"
                   />
                 </div>
               </div>

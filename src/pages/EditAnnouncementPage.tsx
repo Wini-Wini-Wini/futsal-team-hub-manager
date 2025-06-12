@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -44,7 +43,7 @@ const EditAnnouncementPage: React.FC = () => {
         setAnnouncementForm({
           title: announcement.title,
           message: announcement.message,
-          priority: announcement.priority,
+          priority: announcement.priority as 'high' | 'medium' | 'low',
           voting: announcement.voting || false,
           date: announcement.date
         });

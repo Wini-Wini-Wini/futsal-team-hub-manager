@@ -1,254 +1,259 @@
 
-import React from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useEffect } from 'react';
+import Header from '../components/Header';
+import TabBar from '../components/TabBar';
 import { useData, Game, Announcement } from '../contexts/DataContext';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import { Trophy, Calendar, Bell, User, Plus } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import PostForm from '@/components/PostForm';
+import { useNavigate } from 'react-router-dom';
 import PostsList from '@/components/PostsList';
-import GameCard from '@/components/GameCard';
-import { Plus, Calendar, Trophy, Bell } from 'lucide-react';
 
 const HomePage: React.FC = () => {
+  const { games, announcements, getUnreadAnnouncements, markAnnouncementAsRead } = useData();
   const { profile } = useAuth();
-  const { games, getUnreadAnnouncements, markAnnouncementAsRead } = useData();
   const navigate = useNavigate();
-  
-  // Get next game
+
+  // Get the next 3 upcoming games
   const upcomingGames = games
     .filter(game => new Date(game.date) >= new Date())
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  
-  const nextGame = upcomingGames.length > 0 ? upcomingGames[0] : null;
-  
-  // Get latest finished games with results
-  const pastGamesWithResults = games
-    .filter(game => 
-      new Date(game.date) < new Date() && 
-      (game.homeScore !== null || game.awayScore !== null)
-    )
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  
-  const latestResults = pastGamesWithResults.slice(0, 3);
-  
-  // Get unread announcements for players
-  const unreadAnnouncements = getUnreadAnnouncements();
-  
-  // Get priority color for announcements
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(0, 3);
+
+  // Get games with results (past games with scores)
+  const recentResults = games
+    .filter(game => {
+      const gameDate = new Date(game.date);
+      const hasResult = game.home_score !== null && game.away_score !== null;
+      return gameDate < new Date() && hasResult;
+    })
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 3);
+
+  // Get latest announcements
+  const latestAnnouncements = announcements
+    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+    .slice(0, 3);
+
+  const formatDate = (dateStr: string) => {
+    const date = parseISO(dateStr);
+    return {
+      dayOfWeek: capitalize(format(date, "EEEE", { locale: ptBR })),
+      shortDate: format(date, "dd/MM", { locale: ptBR })
+    };
+  };
+
+  const capitalize = (str: string) => {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
+
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'high':
-        return 'text-red-600 bg-red-50 border-red-200';
+        return 'bg-red-500';
       case 'medium':
-        return 'text-amber-600 bg-amber-50 border-amber-200';
+        return 'bg-amber-500';
       case 'low':
-        return 'text-green-600 bg-green-50 border-green-200';
+        return 'bg-green-500';
       default:
-        return 'text-purple-600 bg-purple-50 border-purple-200';
+        return 'bg-gray-500';
     }
-  };
-  
-  const handleAnnouncementClick = (announcement: Announcement) => {
-    markAnnouncementAsRead(announcement.id);
-    navigate('/announcements');
   };
 
   const isCoach = profile?.role === 'coach';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-purple-600 to-purple-800 text-white p-6 shadow-lg">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold mb-1">
-              Boa {getTimeOfDay()}, {profile?.name?.split(' ')[0] || (profile?.role === 'coach' ? 'Treinador(a)' : 'Atleta')}
-            </h1>
-            <p className="text-purple-200 text-sm">
-              {profile?.role === 'coach' ? 'Painel do Treinador' : 'Portal do Atleta'}
-            </p>
-          </div>
-          <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm overflow-hidden">
-            {profile?.avatar_url ? (
-              <img 
-                src={profile.avatar_url} 
-                alt="Profile" 
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <span className="text-2xl font-bold">
-                {profile?.name?.charAt(0) || '?'}
-              </span>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <main className="p-6 space-y-8 pb-32">
-        {/* Coach Post Form */}
-        {isCoach && (
-          <section className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-purple-500 to-purple-700 flex items-center justify-center">
-                <Plus className="h-4 w-4 text-white" />
+      <Header 
+        title="Início" 
+        rightElement={
+          isCoach ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/add')}
+              className="text-white hover:bg-white/20"
+            >
+              <Plus className="h-5 w-5" />
+            </Button>
+          ) : undefined
+        }
+      />
+      
+      <div className="p-6 pb-32 space-y-6">
+        {/* Welcome Section */}
+        <Card className="bg-gradient-to-r from-white to-purple-50 border-0 shadow-lg">
+          <CardContent className="p-6">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center text-white font-bold text-xl">
+                <User className="h-6 w-6" />
               </div>
-              <h2 className="text-xl font-bold text-white">Nova Postagem</h2>
-            </div>
-            <PostForm />
-          </section>
-        )}
-
-        {/* Posts Section */}
-        <section className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center">
-              <Bell className="h-4 w-4 text-white" />
-            </div>
-            <h2 className="text-xl font-bold text-white">Feed de Notícias</h2>
-          </div>
-          <PostsList />
-        </section>
-
-        {/* Next Game Section */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-500 to-green-700 flex items-center justify-center">
-                <Calendar className="h-4 w-4 text-white" />
+              <div>
+                <h2 className="text-xl font-bold text-purple-900">
+                  Olá, {profile?.name || 'Atleta'}!
+                </h2>
+                <p className="text-purple-600">
+                  Bem-vinda ao Female Futsal
+                </p>
               </div>
-              <h2 className="text-xl font-bold text-white">Próximo Jogo</h2>
             </div>
-            {isCoach && (
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => navigate('/add?type=game')}
-                className="bg-white/10 border-white/30 text-white hover:bg-white/20"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Adicionar
-              </Button>
-            )}
-          </div>
+          </CardContent>
+        </Card>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 gap-4">
+          <Card className="bg-gradient-to-br from-blue-500 to-blue-600 border-0 shadow-lg">
+            <CardContent className="p-4 text-center text-white">
+              <Calendar className="h-8 w-8 mx-auto mb-2" />
+              <p className="text-2xl font-bold">{upcomingGames.length}</p>
+              <p className="text-sm opacity-90">Próximos jogos</p>
+            </CardContent>
+          </Card>
           
-          {nextGame ? (
-            <GameCard game={nextGame} />
-          ) : (
-            <Card className="bg-gradient-to-br from-white to-purple-50 border-0 shadow-lg">
-              <CardContent className="p-8 text-center">
-                <Calendar className="h-12 w-12 text-purple-400 mx-auto mb-4" />
-                <p className="text-purple-600 font-medium">Não há jogos agendados</p>
-                <p className="text-purple-400 text-sm mt-2">Os próximos jogos aparecerão aqui</p>
-              </CardContent>
-            </Card>
-          )}
-        </section>
+          <Card className="bg-gradient-to-br from-green-500 to-green-600 border-0 shadow-lg">
+            <CardContent className="p-4 text-center text-white">
+              <Trophy className="h-8 w-8 mx-auto mb-2" />
+              <p className="text-2xl font-bold">{recentResults.length}</p>
+              <p className="text-sm opacity-90">Resultados</p>
+            </CardContent>
+          </Card>
+        </div>
 
-        {/* Unread Announcements for Players */}
-        {profile?.role === 'player' && unreadAnnouncements.length > 0 && (
-          <section className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500 flex items-center justify-center">
-                <Bell className="h-4 w-4 text-white" />
-              </div>
-              <h2 className="text-xl font-bold text-white">Avisos Importantes</h2>
+        {/* Próximos Jogos */}
+        {upcomingGames.length > 0 && (
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-white">Próximos Jogos</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/agenda')}
+                className="text-white hover:bg-white/20"
+              >
+                Ver todos
+              </Button>
             </div>
             
             <div className="space-y-3">
-              {unreadAnnouncements.slice(0, 3).map(announcement => (
-                <Card 
-                  key={announcement.id} 
-                  className={`cursor-pointer hover:shadow-lg transition-all duration-300 border-2 ${getPriorityColor(announcement.priority)}`}
-                  onClick={() => handleAnnouncementClick(announcement)}
-                >
+              {upcomingGames.map((game) => {
+                const { dayOfWeek, shortDate } = formatDate(game.date);
+                return (
+                  <Card key={game.id} className="bg-gradient-to-r from-white to-purple-50 border-0 shadow-md">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-purple-900">
+                            {game.opponent ? `vs ${game.opponent}` : 'Jogo'}
+                          </h4>
+                          <p className="text-sm text-purple-600">
+                            {dayOfWeek}, {shortDate} • {game.time}
+                          </p>
+                          <p className="text-xs text-purple-500">{game.location}</p>
+                        </div>
+                        
+                        <div className="text-right">
+                          <div className="w-3 h-3 rounded-full bg-purple-500 ml-auto mb-1"></div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Resultados Recentes */}
+        {recentResults.length > 0 && (
+          <div>
+            <h3 className="text-xl font-bold text-white mb-4">Resultados Recentes</h3>
+            
+            <div className="space-y-3">
+              {recentResults.map((game) => {
+                const { dayOfWeek, shortDate } = formatDate(game.date);
+                return (
+                  <Card key={game.id} className="bg-gradient-to-r from-white to-green-50 border-0 shadow-md">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-green-900">
+                            {game.opponent ? `vs ${game.opponent}` : 'Jogo'}
+                          </h4>
+                          <p className="text-sm text-green-600">
+                            {dayOfWeek}, {shortDate}
+                          </p>
+                          <p className="text-xs text-green-500">{game.location}</p>
+                        </div>
+                        
+                        <div className="text-center">
+                          <div className="flex items-center space-x-2 text-lg font-bold text-green-900">
+                            <span>{game.home_score}</span>
+                            <span>-</span>
+                            <span>{game.away_score}</span>
+                          </div>
+                          <Trophy className="h-4 w-4 text-green-600 mx-auto mt-1" />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Últimos Avisos */}
+        {latestAnnouncements.length > 0 && (
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-white">Últimos Avisos</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/announcements')}
+                className="text-white hover:bg-white/20"
+              >
+                Ver todos
+              </Button>
+            </div>
+            
+            <div className="space-y-3">
+              {latestAnnouncements.map((announcement) => (
+                <Card key={announcement.id} className="bg-gradient-to-r from-white to-orange-50 border-0 shadow-md">
                   <CardContent className="p-4">
-                    <div className="flex justify-between items-center">
-                      <h3 className="font-bold text-lg">
-                        {announcement.title}
-                      </h3>
-                      <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded-full">
-                        {format(parseISO(announcement.date), 'dd/MM')}
-                      </span>
+                    <div className="flex items-start space-x-3">
+                      <div className={`w-3 h-3 rounded-full ${getPriorityColor(announcement.priority)} mt-2 flex-shrink-0`}></div>
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-orange-900 mb-1">
+                          {announcement.title}
+                        </h4>
+                        <p className="text-sm text-orange-700 line-clamp-2">
+                          {announcement.message}
+                        </p>
+                        <div className="flex items-center mt-2 text-xs text-orange-500">
+                          <Bell className="h-3 w-3 mr-1" />
+                          <span>{announcement.author}</span>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-gray-700 line-clamp-2 mt-2">
-                      {announcement.message}
-                    </p>
                   </CardContent>
                 </Card>
               ))}
-              
-              {unreadAnnouncements.length > 3 && (
-                <div className="text-center">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => navigate('/announcements')}
-                    className="bg-white/10 border-white/30 text-white hover:bg-white/20"
-                  >
-                    Ver todos os {unreadAnnouncements.length} avisos
-                  </Button>
-                </div>
-              )}
             </div>
-          </section>
+          </div>
         )}
 
-        {/* Latest Results Section */}
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-r from-orange-500 to-red-500 flex items-center justify-center">
-                <Trophy className="h-4 w-4 text-white" />
-              </div>
-              <h2 className="text-xl font-bold text-white">Últimos Resultados</h2>
-            </div>
-            {isCoach && (
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => navigate('/add?type=past-game')}
-                className="bg-white/10 border-white/30 text-white hover:bg-white/20"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Adicionar resultado
-              </Button>
-            )}
-          </div>
-          
-          {latestResults.length > 0 ? (
-            <div className="space-y-4">
-              {latestResults.map(game => (
-                <GameCard 
-                  key={game.id} 
-                  game={game} 
-                  showResult={true}
-                />
-              ))}
-            </div>
-          ) : (
-            <Card className="bg-gradient-to-br from-white to-purple-50 border-0 shadow-lg">
-              <CardContent className="p-8 text-center">
-                <Trophy className="h-12 w-12 text-purple-400 mx-auto mb-4" />
-                <p className="text-purple-600 font-medium">Nenhum resultado disponível</p>
-                <p className="text-purple-400 text-sm mt-2">Os resultados dos jogos aparecerão aqui</p>
-              </CardContent>
-            </Card>
-          )}
-        </section>
-      </main>
+        {/* Feed de Posts */}
+        <div>
+          <h3 className="text-xl font-bold text-white mb-4">Feed da Equipe</h3>
+          <PostsList />
+        </div>
+      </div>
     </div>
   );
 };
-
-// Helper function to get time of day
-function getTimeOfDay() {
-  const hour = new Date().getHours();
-  if (hour < 12) return 'manhã';
-  if (hour < 18) return 'tarde';
-  return 'noite';
-}
 
 export default HomePage;
