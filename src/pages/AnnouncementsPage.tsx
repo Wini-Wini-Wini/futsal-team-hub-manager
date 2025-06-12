@@ -6,7 +6,7 @@ import { useData, Announcement } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Edit, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Edit, RefreshCw, AlertTriangle, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
@@ -103,9 +103,21 @@ const AnnouncementsPage: React.FC = () => {
         title="Avisos"
         showHomeButton={true}
         rightElement={
-          <Button variant="ghost" size="icon" onClick={handleRefresh}>
-            <RefreshCw className={`h-5 w-5 text-white ${isLoading ? 'animate-spin' : ''}`} />
-          </Button>
+          <div className="flex items-center space-x-2">
+            {isCoach && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate('/add')}
+                className="text-white hover:bg-white/20"
+              >
+                <Plus className="h-5 w-5" />
+              </Button>
+            )}
+            <Button variant="ghost" size="icon" onClick={handleRefresh}>
+              <RefreshCw className={`h-5 w-5 text-white ${isLoading ? 'animate-spin' : ''}`} />
+            </Button>
+          </div>
         }
       />
       

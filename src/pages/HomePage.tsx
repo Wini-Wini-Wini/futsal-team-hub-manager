@@ -1,7 +1,6 @@
 
 import React, { useEffect } from 'react';
 import Header from '../components/Header';
-import TabBar from '../components/TabBar';
 import { useData, Game, Announcement } from '../contexts/DataContext';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -11,6 +10,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import PostsList from '@/components/PostsList';
+import PostForm from '@/components/PostForm';
 
 const HomePage: React.FC = () => {
   const { games, announcements, getUnreadAnnouncements, markAnnouncementAsRead } = useData();
@@ -246,9 +246,10 @@ const HomePage: React.FC = () => {
           </div>
         )}
 
-        {/* Feed de Posts */}
+        {/* Feed de Posts - com PostForm para treinadores */}
         <div>
           <h3 className="text-xl font-bold text-white mb-4">Feed da Equipe</h3>
+          {isCoach && <PostForm />}
           <PostsList />
         </div>
       </div>
