@@ -3,7 +3,10 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Header from '../components/Header';
-import { LogOut, User } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { LogOut, User, Users, BarChart3 } from 'lucide-react';
 
 const MenuPage: React.FC = () => {
   const { user, profile, logout } = useAuth();
@@ -17,65 +20,76 @@ const MenuPage: React.FC = () => {
   const isCoach = profile?.role === 'coach';
 
   return (
-    <div className="flex-1 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900">
       <Header title="Menu" />
       
-      <div className="p-4">
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-4">
-          {/* User Info Section */}
-          <div className="bg-futsal-primary p-6 text-center text-white">
-            <div className="w-24 h-24 rounded-full bg-white text-futsal-primary mx-auto flex items-center justify-center mb-3">
-              <User size={48} />
+      <main className="p-6 pb-32">
+        <Card className="bg-gradient-to-br from-white to-purple-50 border-0 shadow-lg mb-6">
+          <CardContent className="p-6">
+            {/* User Info Section */}
+            <div className="flex flex-col items-center space-y-4 mb-8">
+              <Avatar className="w-24 h-24">
+                <AvatarImage 
+                  src={profile?.avatar_url || ''} 
+                  alt="Profile picture" 
+                />
+                <AvatarFallback className="bg-gradient-to-br from-purple-600 to-purple-800 text-white text-2xl font-bold">
+                  {profile?.name?.charAt(0) || '?'}
+                </AvatarFallback>
+              </Avatar>
+              
+              <div className="text-center">
+                <h2 className="text-2xl font-bold text-purple-900 mb-1">
+                  {profile?.name || 'Usuário'}
+                </h2>
+                <p className="text-purple-600 font-medium capitalize">
+                  {profile?.role === 'coach' ? 'Treinador(a)' : 'Atleta'}
+                </p>
+              </div>
             </div>
-            <h2 className="text-xl font-bold">
-              {profile?.name || 'Usuário'}
-            </h2>
-            <p className="text-white/80 mt-1">
-              {profile?.role === 'coach' ? 'Treinador(a)' : 'Atleta'}
-            </p>
-          </div>
-          
-          {/* Menu Options */}
-          <div className="divide-y">
-            <button 
-              className="w-full p-4 text-left flex items-center hover:bg-gray-50"
-              onClick={() => navigate('/profile')}
-            >
-              <User size={20} className="mr-3 text-futsal-primary" />
-              <span>Informações pessoais</span>
-            </button>
             
-            {isCoach && (
+            {/* Menu Options */}
+            <div className="space-y-4">
               <button 
-                className="w-full p-4 text-left flex items-center hover:bg-gray-50"
-                onClick={() => navigate('/team')}
+                className="w-full p-4 flex items-center space-x-3 bg-purple-100 hover:bg-purple-200 rounded-lg transition-colors"
+                onClick={() => navigate('/profile')}
               >
-                <span className="mr-3">👥</span>
-                <span>Gerenciar Equipe</span>
+                <User className="h-5 w-5 text-purple-600" />
+                <span className="text-purple-900 font-medium">Informações pessoais</span>
               </button>
-            )}
-            
-            {isCoach && (
-              <button 
-                className="w-full p-4 text-left flex items-center hover:bg-gray-50"
-                onClick={() => navigate('/statistics')}
-              >
-                <span className="mr-3">📊</span>
-                <span>Estatísticas</span>
-              </button>
-            )}
-          </div>
-        </div>
+              
+              {isCoach && (
+                <button 
+                  className="w-full p-4 flex items-center space-x-3 bg-purple-100 hover:bg-purple-200 rounded-lg transition-colors"
+                  onClick={() => navigate('/team')}
+                >
+                  <Users className="h-5 w-5 text-purple-600" />
+                  <span className="text-purple-900 font-medium">Gerenciar Equipe</span>
+                </button>
+              )}
+              
+              {isCoach && (
+                <button 
+                  className="w-full p-4 flex items-center space-x-3 bg-purple-100 hover:bg-purple-200 rounded-lg transition-colors"
+                  onClick={() => navigate('/statistics')}
+                >
+                  <BarChart3 className="h-5 w-5 text-purple-600" />
+                  <span className="text-purple-900 font-medium">Estatísticas</span>
+                </button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
         
         {/* Logout Button */}
-        <button
+        <Button
           onClick={handleLogout}
-          className="w-full py-3 bg-red-600 text-white font-semibold rounded-lg flex items-center justify-center"
+          className="w-full bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white"
         >
-          <LogOut size={20} className="mr-2" />
+          <LogOut className="mr-2 h-4 w-4" />
           Sair
-        </button>
-      </div>
+        </Button>
+      </main>
     </div>
   );
 };

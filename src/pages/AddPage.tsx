@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -8,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Tabs,
   TabsContent,
@@ -317,306 +317,359 @@ const AddPage = () => {
   // Show loading state while checking permissions
   if (isLoading) {
     return (
-      <div className="flex-1 pb-20">
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900">
         <Header 
           title="Carregando..." 
           showBackButton={true}
           showHomeButton={true}
         />
         <div className="flex justify-center items-center h-64">
-          <Loader2 className="h-8 w-8 animate-spin text-futsal-primary" />
+          <Loader2 className="h-8 w-8 animate-spin text-purple-300" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900">
       <Header 
         title="Adicionar" 
         showBackButton={true}
         showHomeButton={true}
       />
       
-      <Tabs value={`${activeTab}`} onValueChange={(value) => setActiveTab(parseInt(value))} className="w-full">
-        <TabsList className="w-full flex justify-around">
-          <TabsTrigger value="0">Jogo</TabsTrigger>
-          <TabsTrigger value="1">Treino</TabsTrigger>
-          <TabsTrigger value="2">Aviso</TabsTrigger>
-        </TabsList>
-        
-        {/* Game Tab */}
-        <TabsContent value="0" className="mt-4 px-4">
-          <form onSubmit={handleGameSubmit} className="flex flex-col gap-4">
-            <div>
-              <Label htmlFor="game-date">Data</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !gameData.date && "text-muted-foreground"
-                    )}
+      <div className="px-6 py-4">
+        <Card className="bg-gradient-to-br from-white to-purple-50 border-0 shadow-lg">
+          <CardContent className="p-6">
+            <Tabs value={`${activeTab}`} onValueChange={(value) => setActiveTab(parseInt(value))} className="w-full">
+              <TabsList className="grid w-full grid-cols-3 mb-6">
+                <TabsTrigger value="0" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">Jogo</TabsTrigger>
+                <TabsTrigger value="1" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">Treino</TabsTrigger>
+                <TabsTrigger value="2" className="data-[state=active]:bg-purple-600 data-[state=active]:text-white">Aviso</TabsTrigger>
+              </TabsList>
+              
+              {/* Game Tab */}
+              <TabsContent value="0" className="mt-6">
+                <form onSubmit={handleGameSubmit} className="space-y-6">
+                  <div>
+                    <Label htmlFor="game-date" className="text-purple-700 font-medium">Data</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full justify-start text-left font-normal mt-2 border-purple-300 focus:border-purple-500",
+                            !gameData.date && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {gameData.date ? (
+                            format(gameData.date, "PPP")
+                          ) : (
+                            <span>Escolher data</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="center" side="bottom">
+                        <Calendar
+                          mode="single"
+                          selected={gameData.date}
+                          onSelect={(date) => setGameData(prev => ({...prev, date: date}))}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="game-time" className="text-purple-700 font-medium">Horário</Label>
+                    <Input 
+                      type="time" 
+                      id="game-time" 
+                      name="time"
+                      value={gameData.time}
+                      onChange={handleGameChange}
+                      className="mt-2 border-purple-300 focus:border-purple-500"
+                      placeholder="Horário do jogo" 
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="game-opponent" className="text-purple-700 font-medium">Oponente</Label>
+                    <Input 
+                      type="text" 
+                      id="game-opponent" 
+                      name="opponent"
+                      value={gameData.opponent}
+                      onChange={handleGameChange}
+                      className="mt-2 border-purple-300 focus:border-purple-500"
+                      placeholder="Nome do oponente" 
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="game-location" className="text-purple-700 font-medium">Local</Label>
+                    <Input 
+                      type="text" 
+                      id="game-location" 
+                      name="location"
+                      value={gameData.location}
+                      onChange={handleGameChange}
+                      className="mt-2 border-purple-300 focus:border-purple-500"
+                      placeholder="Local do jogo" 
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="game-uniform" className="text-purple-700 font-medium">Uniforme</Label>
+                    <Input 
+                      type="text" 
+                      id="game-uniform" 
+                      name="uniform"
+                      value={gameData.uniform}
+                      onChange={handleGameChange}
+                      className="mt-2 border-purple-300 focus:border-purple-500"
+                      placeholder="Uniforme para o jogo" 
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="game-notes" className="text-purple-700 font-medium">Notas</Label>
+                    <Textarea
+                      id="game-notes"
+                      name="notes"
+                      value={gameData.notes}
+                      onChange={handleGameChange}
+                      className="mt-2 border-purple-300 focus:border-purple-500"
+                      placeholder="Notas adicionais"
+                    />
+                  </div>
+                  
+                  <Button 
+                    disabled={isSubmitting} 
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white"
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {gameData.date ? (
-                      format(gameData.date, "PPP")
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Adicionando...
+                      </>
                     ) : (
-                      <span>Escolher data</span>
+                      "Adicionar Jogo"
                     )}
                   </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="center" side="bottom">
-                  <Calendar
-                    mode="single"
-                    selected={gameData.date}
-                    onSelect={(date) => setGameData(prev => ({...prev, date: date}))}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            
-            <div>
-              <Label htmlFor="game-time">Horário</Label>
-              <Input 
-                type="time" 
-                id="game-time" 
-                name="time"
-                value={gameData.time}
-                onChange={handleGameChange}
-                placeholder="Horário do jogo" 
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="game-opponent">Oponente</Label>
-              <Input 
-                type="text" 
-                id="game-opponent" 
-                name="opponent"
-                value={gameData.opponent}
-                onChange={handleGameChange}
-                placeholder="Nome do oponente" 
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="game-location">Local</Label>
-              <Input 
-                type="text" 
-                id="game-location" 
-                name="location"
-                value={gameData.location}
-                onChange={handleGameChange}
-                placeholder="Local do jogo" 
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="game-uniform">Uniforme</Label>
-              <Input 
-                type="text" 
-                id="game-uniform" 
-                name="uniform"
-                value={gameData.uniform}
-                onChange={handleGameChange}
-                placeholder="Uniforme para o jogo" 
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="game-notes">Notas</Label>
-              <Textarea
-                id="game-notes"
-                name="notes"
-                value={gameData.notes}
-                onChange={handleGameChange}
-                placeholder="Notas adicionais"
-              />
-            </div>
-            
-            <Button disabled={isSubmitting} type="submit">
-              {isSubmitting ? "Adicionando..." : "Adicionar Jogo"}
-            </Button>
-          </form>
-        </TabsContent>
-        
-        {/* Training Tab */}
-        <TabsContent value="1" className="mt-4 px-4">
-          <form onSubmit={handleTrainingSubmit} className="flex flex-col gap-4">
-            <div>
-              <Label htmlFor="training-date">Data</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={"outline"}
-                    className={cn(
-                      "w-full justify-start text-left font-normal",
-                      !trainingData.date && "text-muted-foreground"
-                    )}
+                </form>
+              </TabsContent>
+              
+              {/* Training Tab */}
+              <TabsContent value="1" className="mt-6">
+                <form onSubmit={handleTrainingSubmit} className="space-y-6">
+                  <div>
+                    <Label htmlFor="training-date" className="text-purple-700 font-medium">Data</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant={"outline"}
+                          className={cn(
+                            "w-full justify-start text-left font-normal mt-2 border-purple-300 focus:border-purple-500",
+                            !trainingData.date && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {trainingData.date ? (
+                            format(trainingData.date, "PPP")
+                          ) : (
+                            <span>Escolher data</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="center" side="bottom">
+                        <Calendar
+                          mode="single"
+                          selected={trainingData.date}
+                          onSelect={(date) => setTrainingData(prev => ({...prev, date: date}))}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="training-time" className="text-purple-700 font-medium">Horário</Label>
+                    <Input 
+                      type="time" 
+                      id="training-time"
+                      name="time"
+                      value={trainingData.time}
+                      onChange={handleTrainingChange}
+                      className="mt-2 border-purple-300 focus:border-purple-500"
+                      placeholder="Horário do treino" 
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="training-location" className="text-purple-700 font-medium">Local</Label>
+                    <Input 
+                      type="text" 
+                      id="training-location"
+                      name="location"
+                      value={trainingData.location}
+                      onChange={handleTrainingChange}
+                      className="mt-2 border-purple-300 focus:border-purple-500"
+                      placeholder="Local do treino" 
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="training-uniform" className="text-purple-700 font-medium">Uniforme</Label>
+                    <Input 
+                      type="text" 
+                      id="training-uniform"
+                      name="uniform"
+                      value={trainingData.uniform}
+                      onChange={handleTrainingChange}
+                      className="mt-2 border-purple-300 focus:border-purple-500"
+                      placeholder="Uniforme para o treino" 
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="training-focus" className="text-purple-700 font-medium">Foco</Label>
+                    <Input 
+                      type="text" 
+                      id="training-focus"
+                      name="focus"
+                      value={trainingData.focus}
+                      onChange={handleTrainingChange}
+                      className="mt-2 border-purple-300 focus:border-purple-500"
+                      placeholder="Foco do treino" 
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="training-drills" className="text-purple-700 font-medium">Exercícios</Label>
+                    <Textarea
+                      id="training-drills"
+                      name="drills"
+                      value={trainingData.drills}
+                      onChange={handleTrainingChange}
+                      className="mt-2 border-purple-300 focus:border-purple-500"
+                      placeholder="Exercícios a serem realizados"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="training-notes" className="text-purple-700 font-medium">Notas</Label>
+                    <Textarea
+                      id="training-notes"
+                      name="notes"
+                      value={trainingData.notes}
+                      onChange={handleTrainingChange}
+                      className="mt-2 border-purple-300 focus:border-purple-500"
+                      placeholder="Notas adicionais"
+                    />
+                  </div>
+                  
+                  <Button 
+                    disabled={isSubmitting} 
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white"
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {trainingData.date ? (
-                      format(trainingData.date, "PPP")
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Adicionando...
+                      </>
                     ) : (
-                      <span>Escolher data</span>
+                      "Adicionar Treino"
                     )}
                   </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="center" side="bottom">
-                  <Calendar
-                    mode="single"
-                    selected={trainingData.date}
-                    onSelect={(date) => setTrainingData(prev => ({...prev, date: date}))}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-            
-            <div>
-              <Label htmlFor="training-time">Horário</Label>
-              <Input 
-                type="time" 
-                id="training-time"
-                name="time"
-                value={trainingData.time}
-                onChange={handleTrainingChange}
-                placeholder="Horário do treino" 
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="training-location">Local</Label>
-              <Input 
-                type="text" 
-                id="training-location"
-                name="location"
-                value={trainingData.location}
-                onChange={handleTrainingChange}
-                placeholder="Local do treino" 
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="training-uniform">Uniforme</Label>
-              <Input 
-                type="text" 
-                id="training-uniform"
-                name="uniform"
-                value={trainingData.uniform}
-                onChange={handleTrainingChange}
-                placeholder="Uniforme para o treino" 
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="training-focus">Foco</Label>
-              <Input 
-                type="text" 
-                id="training-focus"
-                name="focus"
-                value={trainingData.focus}
-                onChange={handleTrainingChange}
-                placeholder="Foco do treino" 
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="training-drills">Exercícios</Label>
-              <Textarea
-                id="training-drills"
-                name="drills"
-                value={trainingData.drills}
-                onChange={handleTrainingChange}
-                placeholder="Exercícios a serem realizados"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="training-notes">Notas</Label>
-              <Textarea
-                id="training-notes"
-                name="notes"
-                value={trainingData.notes}
-                onChange={handleTrainingChange}
-                placeholder="Notas adicionais"
-              />
-            </div>
-            
-            <Button disabled={isSubmitting} type="submit">
-              {isSubmitting ? "Adicionando..." : "Adicionar Treino"}
-            </Button>
-          </form>
-        </TabsContent>
-        
-        {/* Announcement Tab */}
-        <TabsContent value="2" className="mt-4 px-4">
-          <form onSubmit={handleAnnouncementSubmit} className="flex flex-col gap-4">
-            <div>
-              <Label htmlFor="announcement-title">Título</Label>
-              <Input 
-                type="text" 
-                id="announcement-title"
-                name="title"
-                value={announcementData.title}
-                onChange={handleAnnouncementChange}
-                placeholder="Título do aviso" 
-                required
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="announcement-content">Conteúdo</Label>
-              <Textarea
-                id="announcement-content"
-                name="content"
-                value={announcementData.content}
-                onChange={handleAnnouncementChange}
-                placeholder="Conteúdo do aviso"
-                required
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="announcement-priority">Prioridade</Label>
-              <select
-                id="announcement-priority"
-                name="priority"
-                className="w-full p-2 border rounded-md"
-                value={announcementData.priority}
-                onChange={(e) => setAnnouncementData(prev => ({
-                  ...prev, 
-                  priority: e.target.value as 'high' | 'medium' | 'low'
-                }))}
-              >
-                <option value="low">Baixa</option>
-                <option value="medium">Média</option>
-                <option value="high">Alta</option>
-              </select>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="announcement-voting"
-                checked={announcementData.voting}
-                onChange={(e) => setAnnouncementData(prev => ({
-                  ...prev,
-                  voting: e.target.checked
-                }))}
-              />
-              <Label htmlFor="announcement-voting">Permitir votação</Label>
-            </div>
-            
-            <Button disabled={isSubmitting} type="submit">
-              {isSubmitting ? "Adicionando..." : "Adicionar Aviso"}
-            </Button>
-          </form>
-        </TabsContent>
-      </Tabs>
+                </form>
+              </TabsContent>
+              
+              {/* Announcement Tab */}
+              <TabsContent value="2" className="mt-6">
+                <form onSubmit={handleAnnouncementSubmit} className="space-y-6">
+                  <div>
+                    <Label htmlFor="announcement-title" className="text-purple-700 font-medium">Título</Label>
+                    <Input 
+                      type="text" 
+                      id="announcement-title"
+                      name="title"
+                      value={announcementData.title}
+                      onChange={handleAnnouncementChange}
+                      className="mt-2 border-purple-300 focus:border-purple-500"
+                      placeholder="Título do aviso" 
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="announcement-content" className="text-purple-700 font-medium">Conteúdo</Label>
+                    <Textarea
+                      id="announcement-content"
+                      name="content"
+                      value={announcementData.content}
+                      onChange={handleAnnouncementChange}
+                      className="mt-2 border-purple-300 focus:border-purple-500"
+                      placeholder="Conteúdo do aviso"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="announcement-priority" className="text-purple-700 font-medium">Prioridade</Label>
+                    <select
+                      id="announcement-priority"
+                      name="priority"
+                      className="w-full p-2 border border-purple-300 rounded-md mt-2 focus:border-purple-500 focus:outline-none"
+                      value={announcementData.priority}
+                      onChange={(e) => setAnnouncementData(prev => ({
+                        ...prev, 
+                        priority: e.target.value as 'high' | 'medium' | 'low'
+                      }))}
+                    >
+                      <option value="low">Baixa</option>
+                      <option value="medium">Média</option>
+                      <option value="high">Alta</option>
+                    </select>
+                  </div>
+                  
+                  <div className="flex items-center space-x-3 p-4 bg-purple-100 rounded-lg">
+                    <input
+                      type="checkbox"
+                      id="announcement-voting"
+                      checked={announcementData.voting}
+                      onChange={(e) => setAnnouncementData(prev => ({
+                        ...prev,
+                        voting: e.target.checked
+                      }))}
+                      className="h-4 w-4 text-purple-600 border-purple-300 rounded focus:ring-purple-500"
+                    />
+                    <Label htmlFor="announcement-voting" className="text-purple-700 font-medium">Permitir votação</Label>
+                  </div>
+                  
+                  <Button 
+                    disabled={isSubmitting} 
+                    type="submit"
+                    className="w-full bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Adicionando...
+                      </>
+                    ) : (
+                      "Adicionar Aviso"
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 };
