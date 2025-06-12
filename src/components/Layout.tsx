@@ -1,10 +1,14 @@
 
 import React from 'react';
-import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Home, Calendar, AlertTriangle, Menu, Plus } from 'lucide-react';
 
-export const Layout: React.FC = () => {
+interface LayoutProps {
+  children: React.ReactNode;
+}
+
+export const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isAuthenticated, profile } = useAuth();
@@ -68,11 +72,11 @@ export const Layout: React.FC = () => {
 
   return (
     <div className="app-container bg-gradient-to-b from-futsal-light to-futsal-secondary flex flex-col">
-      <Outlet />
+      {children}
       
       {/* Bottom Navigation */}
       <nav className="fixed bottom-0 w-full max-w-[480px] h-16 bg-white border-t flex justify-around items-center">
-        <NavLink to="/" className={getNavLinkClass}>
+        <NavLink to="/home" className={getNavLinkClass}>
           <Home size={24} />
           <span>Home</span>
         </NavLink>

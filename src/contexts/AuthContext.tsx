@@ -1,6 +1,5 @@
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Session, User } from '@supabase/supabase-js';
@@ -45,7 +44,6 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   const fetchProfile = async (userId?: string) => {
     try {
@@ -196,7 +194,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
 
   const logout = async () => {
     await supabase.auth.signOut();
-    navigate('/login');
+    // Navigation will be handled by components that consume this context
   };
 
   const updateProfile = async (data: Partial<UserProfile>) => {
