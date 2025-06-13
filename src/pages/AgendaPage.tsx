@@ -4,6 +4,7 @@ import Header from '../components/Header';
 import { useData } from '../contexts/DataContext';
 import GameCard from '../components/GameCard';
 import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,14 +22,10 @@ const AgendaPage: React.FC = () => {
     fetchTrainings();
   }, []);
 
-  // Combine games and trainings and sort by date
-  const allEvents = [
-    ...games.map(game => ({ ...game, type: 'game' })),
-    ...trainings.map(training => ({ ...training, type: 'training' }))
-  ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-  const upcomingEvents = allEvents.filter(event => new Date(event.date) >= new Date());
-  const pastEvents = allEvents.filter(event => new Date(event.date) < new Date());
+  const upcomingGames = games.filter(game => new Date(game.date) >= new Date());
+  const pastGames = games.filter(game => new Date(game.date) < new Date());
+  const upcomingTrainings = trainings.filter(training => new Date(training.date) >= new Date());
+  const pastTrainings = trainings.filter(training => new Date(training.date) < new Date());
 
   const formatDate = (dateStr: string) => {
     const date = parseISO(dateStr);
@@ -115,41 +112,84 @@ const AgendaPage: React.FC = () => {
       />
       
       <div className="p-6 pb-32 space-y-6 max-w-4xl mx-auto min-h-screen">
-        {/* Próximos Eventos */}
-        {upcomingEvents.length > 0 && (
-          <div>
-            <h2 className="text-2xl font-bold text-white mb-4">Próximos Eventos</h2>
-            <div className="space-y-4">
-              {upcomingEvents.map(event => 
-                event.type === 'game' 
-                  ? <GameCard key={event.id} game={event} />
-                  : renderTrainingCard(event)
-              )}
-            </div>
-          </div>
-        )}
+        <Tabs defaultValue="games" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 bg-white/10 backdrop-blur-sm">
+            <TabsTrigger value="games" className="text-white data-[state=active]:bg-white data-[state=active]:text-purple-900">
+              Jogos
+            </TabsTrigger>
+            <TabsTrigger value="trainings" className="text-white data-[state=active]:bg-white data-[state=active]:text-purple-900">
+              Treinos
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="games" className="space-y-6 mt-6">
+            {/* Próximos Jogos */}
+            {upcomingGames.length > 0 && (
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-4">Próximos Jogos</h2>
+                <div className="space-y-4">
+                  {upcomingGames.map(game => 
+                    <GameCard key={game.id} game={game} />
+                  )}
+                </div>
+              </div>
+            )}
 
-        {/* Eventos Passados */}
-        {pastEvents.length > 0 && (
-          <div>
-            <h2 className="text-2xl font-bold text-white mb-4">Eventos Passados</h2>
-            <div className="space-y-4">
-              {pastEvents.map(event => 
-                event.type === 'game' 
-                  ? <GameCard key={event.id} game={event} showResult={true} />
-                  : renderTrainingCard(event)
-              )}
-            </div>
-          </div>
-        )}
+            {/* Jogos Passados */}
+            {pastGames.length > 0 && (
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-4">Jogos Passados</h2>
+                <div className="space-y-4">
+                  {pastGames.map(game => 
+                    <GameCard key={game.id} game={game} showResult={true} />
+                  )}
+                </div>
+              </div>
+            )}
 
-        {allEvents.length === 0 && (
-          <Card className="bg-gradient-to-r from-white to-purple-50 border-0 shadow-lg">
-            <CardContent className="p-8 text-center">
-              <p className="text-purple-600 text-lg">Nenhum evento encontrado</p>
-            </CardContent>
-          </Card>
-        )}
+            {upcomingGames.length === 0 && pastGames.length === 0 && (
+              <Card className="bg-gradient-to-r from-white to-purple-50 border-0 shadow-lg">
+                <CardContent className="p-8 text-center">
+                  <p className="text-purple-600 text-lg">Nenhum jogo encontrado</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="trainings" className="space-y-6 mt-6">
+            {/* Próximos Treinos */}
+            {upcomingTrainings.length > 0 && (
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-4">Próximos Treinos</h2>
+                <div className="space-y-4">
+                  {upcomingTrainings.map(training => 
+                    renderTrainingCard(training)
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Treinos Passados */}
+            {pastTrainings.length > 0 && (
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-4">Treinos Passados</h2>
+                <div className="space-y-4">
+                  {pastTrainings.map(training => 
+                    renderTrainingCard(training)
+                  )}
+                </div>
+              </div>
+            )}
+
+            {upcomingTrainings.length === 0 && pastTrainings.length === 0 && (
+              <Card className="bg-gradient-to-r from-white to-purple-50 border-0 shadow-lg">
+                <CardContent className="p-8 text-center">
+                  <p className="text-purple-600 text-lg">Nenhum treino encontrado</p>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Fixed Add Button for Coaches */}

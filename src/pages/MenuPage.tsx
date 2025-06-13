@@ -6,7 +6,7 @@ import Header from '../components/Header';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { LogOut, User, Users, BarChart3 } from 'lucide-react';
+import { LogOut, User } from 'lucide-react';
 
 const MenuPage: React.FC = () => {
   const { user, profile, logout } = useAuth();
@@ -16,8 +16,6 @@ const MenuPage: React.FC = () => {
     logout();
     navigate('/login');
   };
-  
-  const isCoach = profile?.role === 'coach';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 font-inter">
@@ -57,26 +55,6 @@ const MenuPage: React.FC = () => {
                 <User className="h-5 w-5 text-purple-600" />
                 <span className="text-purple-900 font-medium">Informações pessoais</span>
               </button>
-              
-              {isCoach && (
-                <button 
-                  className="w-full p-4 flex items-center space-x-3 bg-purple-100 hover:bg-purple-200 rounded-lg transition-colors"
-                  onClick={() => navigate('/team')}
-                >
-                  <Users className="h-5 w-5 text-purple-600" />
-                  <span className="text-purple-900 font-medium">Gerenciar Equipe</span>
-                </button>
-              )}
-              
-              {isCoach && (
-                <button 
-                  className="w-full p-4 flex items-center space-x-3 bg-purple-100 hover:bg-purple-200 rounded-lg transition-colors"
-                  onClick={() => navigate('/statistics')}
-                >
-                  <BarChart3 className="h-5 w-5 text-purple-600" />
-                  <span className="text-purple-900 font-medium">Estatísticas</span>
-                </button>
-              )}
             </div>
           </CardContent>
         </Card>
