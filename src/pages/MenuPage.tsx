@@ -20,10 +20,10 @@ const MenuPage: React.FC = () => {
   const isCoach = profile?.role === 'coach';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 font-inter">
       <Header title="Menu" />
       
-      <main className="p-6 pb-32">
+      <main className="p-6 pb-24 max-w-4xl mx-auto">
         <Card className="bg-gradient-to-br from-white to-purple-50 border-0 shadow-lg mb-6">
           <CardContent className="p-6">
             {/* User Info Section */}
@@ -34,7 +34,7 @@ const MenuPage: React.FC = () => {
                   alt="Profile picture" 
                 />
                 <AvatarFallback className="bg-gradient-to-br from-purple-600 to-purple-800 text-white text-2xl font-bold">
-                  {profile?.name?.charAt(0) || '?'}
+                  {profile?.name?.charAt(0) || 'U'}
                 </AvatarFallback>
               </Avatar>
               

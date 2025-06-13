@@ -1,4 +1,5 @@
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -98,6 +99,7 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
   }
 }
 
@@ -108,4 +110,21 @@
   margin: 0 auto;
   overflow-x: hidden;
   position: relative;
+}
+
+@layer utilities {
+  .font-inter {
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+/* Fix scroll issues */
+html, body {
+  overflow-x: hidden;
+  height: 100%;
+}
+
+/* Ensure proper spacing at bottom for navigation */
+.pb-24 {
+  padding-bottom: 6rem !important;
 }

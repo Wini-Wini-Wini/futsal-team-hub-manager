@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import PostsList from '@/components/PostsList';
 import PostForm from '@/components/PostForm';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 const HomePage: React.FC = () => {
   const { games, announcements, getUnreadAnnouncements, markAnnouncementAsRead } = useData();
@@ -66,7 +67,7 @@ const HomePage: React.FC = () => {
   const isCoach = profile?.role === 'coach';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 font-inter">
       <Header 
         title="Início" 
         rightElement={
@@ -83,19 +84,25 @@ const HomePage: React.FC = () => {
         }
       />
       
-      <div className="p-6 pb-32 space-y-6">
+      <div className="p-6 pb-24 space-y-6 max-w-4xl mx-auto">
         {/* Welcome Section */}
         <Card className="bg-gradient-to-r from-white to-purple-50 border-0 shadow-lg">
           <CardContent className="p-6">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center text-white font-bold text-xl">
-                <User className="h-6 w-6" />
-              </div>
+              <Avatar className="w-16 h-16">
+                <AvatarImage 
+                  src={profile?.avatar_url || ''} 
+                  alt="Profile picture" 
+                />
+                <AvatarFallback className="bg-gradient-to-br from-purple-600 to-purple-800 text-white font-bold text-xl">
+                  {profile?.name?.charAt(0) || 'U'}
+                </AvatarFallback>
+              </Avatar>
               <div>
                 <h2 className="text-xl font-bold text-purple-900">
                   Olá, {profile?.name || 'Atleta'}!
                 </h2>
-                <p className="text-purple-600">
+                <p className="text-purple-600 font-medium">
                   Bem-vinda ao Female Futsal
                 </p>
               </div>
