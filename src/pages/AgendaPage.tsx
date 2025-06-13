@@ -1,46 +1,39 @@
 
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import Header from '../components/Header';
-import TabBar from '../components/TabBar';
 import { useData } from '../contexts/DataContext';
+import GameCard from '../components/GameCard';
+import { Card, CardContent } from '@/components/ui/card';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Edit, RefreshCw, Calendar, MapPin, Clock, Shirt, MessageCircle, ChevronDown, ChevronUp, Plus } from 'lucide-react';
+import { Plus, Clock, MapPin, Shirt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import GameCard from '@/components/GameCard';
-import FeedbackForm from '@/components/FeedbackForm';
-import FeedbackList from '@/components/FeedbackList';
+import { useNavigate } from 'react-router-dom';
 
 const AgendaPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState(0);
-  const [expandedTraining, setExpandedTraining] = useState<string | null>(null);
-  const [feedbackKey, setFeedbackKey] = useState(0);
-  const { games, trainings, isLoading, fetchData } = useData();
+  const { games, trainings, fetchGames, fetchTrainings } = useData();
   const { profile } = useAuth();
   const navigate = useNavigate();
-  
-  const tabs = ['Próximos jogos', 'Próximos treinos'];
 
-  const sortedGames = [...games]
-    .filter(game => new Date(game.date) >= new Date())
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  useEffect(() => {
+    fetchGames();
+    fetchTrainings();
+  }, []);
 
-  const sortedTrainings = [...trainings]
-    .filter(training => new Date(training.date) >= new Date())
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  // Combine games and trainings and sort by date
+  const allEvents = [
+    ...games.map(game => ({ ...game, type: 'game' })),
+    ...trainings.map(training => ({ ...training, type: 'training' }))
+  ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-  const pastTrainings = [...trainings]
-    .filter(training => new Date(training.date) < new Date())
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    .slice(0, 5);
+  const upcomingEvents = allEvents.filter(event => new Date(event.date) >= new Date());
+  const pastEvents = allEvents.filter(event => new Date(event.date) < new Date());
 
   const formatDate = (dateStr: string) => {
     const date = parseISO(dateStr);
     return {
-      dayOfWeek: capitalize(format(date, "EEEE", { locale: ptBR })),
+      dayOfWeek: format(date, "EEEE", { locale: ptBR }),
       date: format(date, "dd 'de' MMMM", { locale: ptBR })
     };
   };
@@ -48,223 +41,127 @@ const AgendaPage: React.FC = () => {
   const capitalize = (str: string) => {
     return str.charAt(0).toUpperCase() + str.slice(1);
   };
-  
+
   const isCoach = profile?.role === 'coach';
-  const isPlayer = profile?.role === 'player';
-  
-  const handleRefresh = () => {
-    fetchData();
-  };
 
-  const handleFeedbackSubmitted = () => {
-    setFeedbackKey(prev => prev + 1);
-  };
-
-  const toggleTrainingFeedback = (trainingId: string) => {
-    setExpandedTraining(expandedTraining === trainingId ? null : trainingId);
+  const renderTrainingCard = (training: any) => {
+    const { dayOfWeek, date } = formatDate(training.date);
+    
+    return (
+      <Card key={training.id} className="overflow-hidden shadow-lg border-0 bg-gradient-to-br from-white to-blue-50 hover:shadow-xl transition-all duration-300">
+        <CardContent className="p-6">
+          <div className="flex justify-between items-start mb-4">
+            <div className="flex-1">
+              <h3 className="font-bold text-xl text-gray-900 mb-2">
+                {capitalize(dayOfWeek)}, {date}
+              </h3>
+              
+              <div className="mb-4 p-4 bg-blue-100 rounded-lg text-center">
+                <h4 className="text-lg font-bold text-blue-900 mb-2">Treino</h4>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center text-blue-700">
+                  <MapPin className="mr-3 h-5 w-5" />
+                  <span className="font-medium">{training.location}</span>
+                </div>
+                <div className="flex items-center text-blue-700">
+                  <Clock className="mr-3 h-5 w-5" />
+                  <span className="font-medium">{training.time}</span>
+                </div>
+                {training.uniform && (
+                  <div className="flex items-center text-blue-700">
+                    <Shirt className="mr-3 h-5 w-5" />
+                    <span className="font-medium">Uniforme {training.uniform}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex flex-col space-y-2">
+              {isCoach && (
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  className="text-blue-600 border-blue-300 hover:bg-blue-50 hover:border-blue-400"
+                  onClick={() => navigate(`/edit-training/${training.id}`)}
+                >
+                  Editar
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 font-inter">
       <Header 
         title="Agenda" 
         rightElement={
-          <div className="flex items-center space-x-2">
-            {isCoach && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate('/add')}
-                className="text-white hover:bg-white/20"
-              >
-                <Plus className="h-5 w-5" />
-              </Button>
-            )}
-            <Button variant="ghost" size="icon" onClick={handleRefresh}>
-              <RefreshCw className={`h-5 w-5 text-white ${isLoading ? 'animate-spin' : ''}`} />
+          isCoach ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/add')}
+              className="text-white hover:bg-white/20"
+            >
+              <Plus className="h-5 w-5" />
             </Button>
-          </div>
+          ) : undefined
         }
       />
       
-      <div className="px-6 py-4">
-        <TabBar 
-          tabs={tabs} 
-          activeTab={activeTab} 
-          onTabChange={setActiveTab} 
-        />
-      </div>
-
-      <div className="px-6 pb-32">
-        {isLoading ? (
-          <div className="flex justify-center items-center p-8">
-            <div className="flex flex-col items-center space-y-4">
-              <RefreshCw className="h-8 w-8 animate-spin text-purple-300" />
-              <p className="text-purple-200 font-medium">Carregando agenda...</p>
+      <div className="p-6 pb-32 space-y-6 max-w-4xl mx-auto min-h-screen">
+        {/* Próximos Eventos */}
+        {upcomingEvents.length > 0 && (
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-4">Próximos Eventos</h2>
+            <div className="space-y-4">
+              {upcomingEvents.map(event => 
+                event.type === 'game' 
+                  ? <GameCard key={event.id} game={event} />
+                  : renderTrainingCard(event)
+              )}
             </div>
           </div>
-        ) : activeTab === 0 ? (
-          // Games
-          <div className="space-y-6">
-            {sortedGames.length > 0 ? (
-              sortedGames.map((game) => (
-                <GameCard key={game.id} game={game} />
-              ))
-            ) : (
-              <Card className="bg-gradient-to-br from-white to-purple-50 border-0 shadow-lg">
-                <CardContent className="p-12 text-center">
-                  <Calendar className="h-16 w-16 text-purple-400 mx-auto mb-6" />
-                  <h3 className="text-xl font-bold text-purple-800 mb-2">Nenhum jogo agendado</h3>
-                  <p className="text-purple-600">Os próximos jogos aparecerão aqui</p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        ) : (
-          // Trainings
-          <div className="space-y-6">
-            {/* Future Trainings */}
-            {sortedTrainings.length > 0 && (
-              <div className="space-y-4">
-                <h3 className="text-xl font-bold text-white">Próximos Treinos</h3>
-                {sortedTrainings.map((training) => {
-                  const { dayOfWeek, date } = formatDate(training.date);
-                  return (
-                    <Card 
-                      key={training.id} 
-                      className="overflow-hidden shadow-lg border-0 bg-gradient-to-br from-white to-purple-50 hover:shadow-xl transition-all duration-300"
-                    >
-                      <CardContent className="p-6">
-                        <div className="flex justify-between items-start">
-                          <div className="flex-1">
-                            <h3 className="font-bold text-xl text-purple-900 mb-4">
-                              {dayOfWeek}, {date}
-                            </h3>
-                            
-                            <div className="space-y-3">
-                              <div className="flex items-center text-purple-700">
-                                <MapPin className="mr-3 h-5 w-5" />
-                                <span className="font-medium">{training.location}</span>
-                              </div>
-                              <div className="flex items-center text-purple-700">
-                                <Clock className="mr-3 h-5 w-5" />
-                                <span className="font-medium">{training.time}</span>
-                              </div>
-                              <div className="flex items-center text-purple-700">
-                                <Shirt className="mr-3 h-5 w-5" />
-                                <span className="font-medium">{training.uniform}</span>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {isCoach && (
-                            <Button 
-                              variant="outline"
-                              size="sm"
-                              className="text-purple-600 border-purple-300 hover:bg-purple-50 hover:border-purple-400"
-                              onClick={() => navigate(`/edit-training/${training.id}`)}
-                            >
-                              <Edit className="mr-2 h-4 w-4" />
-                              Editar
-                            </Button>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
+        )}
 
-            {/* Past Trainings for Feedback (Players only) */}
-            {isPlayer && pastTrainings.length > 0 && (
-              <div className="space-y-4">
-                <h3 className="text-xl font-bold text-white">Treinos Passados (Feedback)</h3>
-                {pastTrainings.map((training) => {
-                  const { dayOfWeek, date } = formatDate(training.date);
-                  const isExpanded = expandedTraining === training.id;
-                  
-                  return (
-                    <div key={training.id} className="space-y-4">
-                      <Card className="overflow-hidden shadow-lg border-0 bg-gradient-to-br from-white to-green-50 hover:shadow-xl transition-all duration-300">
-                        <CardContent className="p-6">
-                          <div className="flex justify-between items-start">
-                            <div className="flex-1">
-                              <h3 className="font-bold text-xl text-gray-900 mb-4">
-                                {dayOfWeek}, {date}
-                              </h3>
-                              
-                              <div className="space-y-3">
-                                <div className="flex items-center text-green-700">
-                                  <MapPin className="mr-3 h-5 w-5" />
-                                  <span className="font-medium">{training.location}</span>
-                                </div>
-                                <div className="flex items-center text-green-700">
-                                  <Clock className="mr-3 h-5 w-5" />
-                                  <span className="font-medium">{training.time}</span>
-                                </div>
-                                <div className="flex items-center text-green-700">
-                                  <Shirt className="mr-3 h-5 w-5" />
-                                  <span className="font-medium">{training.uniform}</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="mt-4 pt-4 border-t border-green-200">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => toggleTrainingFeedback(training.id)}
-                              className="text-green-600 border-green-300 hover:bg-green-50 hover:border-green-400 w-full"
-                            >
-                              <MessageCircle className="mr-2 h-4 w-4" />
-                              {isExpanded ? 'Ocultar Feedback' : 'Ver/Dar Feedback'}
-                              {isExpanded ? (
-                                <ChevronUp className="ml-2 h-4 w-4" />
-                              ) : (
-                                <ChevronDown className="ml-2 h-4 w-4" />
-                              )}
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
-                      
-                      {/* Feedback Panel */}
-                      {isExpanded && (
-                        <div className="space-y-4">
-                          <FeedbackForm
-                            targetType="training"
-                            targetId={training.id}
-                            targetTitle={`Treino em ${training.location}`}
-                            onFeedbackSubmitted={handleFeedbackSubmitted}
-                          />
-                          <FeedbackList
-                            key={`${training.id}-${feedbackKey}`}
-                            targetType="training"
-                            targetId={training.id}
-                          />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Empty state */}
-            {sortedTrainings.length === 0 && (isCoach || pastTrainings.length === 0) && (
-              <Card className="bg-gradient-to-br from-white to-purple-50 border-0 shadow-lg">
-                <CardContent className="p-12 text-center">
-                  <Calendar className="h-16 w-16 text-purple-400 mx-auto mb-6" />
-                  <h3 className="text-xl font-bold text-purple-800 mb-2">Nenhum treino agendado</h3>
-                  <p className="text-purple-600">Os próximos treinos aparecerão aqui</p>
-                </CardContent>
-              </Card>
-            )}
+        {/* Eventos Passados */}
+        {pastEvents.length > 0 && (
+          <div>
+            <h2 className="text-2xl font-bold text-white mb-4">Eventos Passados</h2>
+            <div className="space-y-4">
+              {pastEvents.map(event => 
+                event.type === 'game' 
+                  ? <GameCard key={event.id} game={event} showResult={true} />
+                  : renderTrainingCard(event)
+              )}
+            </div>
           </div>
         )}
+
+        {allEvents.length === 0 && (
+          <Card className="bg-gradient-to-r from-white to-purple-50 border-0 shadow-lg">
+            <CardContent className="p-8 text-center">
+              <p className="text-purple-600 text-lg">Nenhum evento encontrado</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
+
+      {/* Fixed Add Button for Coaches */}
+      {isCoach && (
+        <Button
+          onClick={() => navigate('/add')}
+          className="fixed bottom-24 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 shadow-lg z-10"
+          size="icon"
+        >
+          <Plus className="h-6 w-6 text-white" />
+        </Button>
+      )}
     </div>
   );
 };

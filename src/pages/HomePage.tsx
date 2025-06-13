@@ -14,13 +14,30 @@ import PostForm from '@/components/PostForm';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
 const HomePage: React.FC = () => {
-  const { games, announcements, getUnreadAnnouncements, markAnnouncementAsRead } = useData();
+  const { games, trainings, announcements, fetchData, isLoading } = useData();
   const { profile } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    console.log('HomePage mounted, fetching data...');
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    console.log('Games updated:', games);
+    console.log('Trainings updated:', trainings);
+    console.log('Announcements updated:', announcements);
+  }, [games, trainings, announcements]);
 
   // Get the next 3 upcoming games
   const upcomingGames = games
     .filter(game => new Date(game.date) >= new Date())
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    .slice(0, 3);
+
+  // Get the next 3 upcoming trainings
+  const upcomingTrainings = trainings
+    .filter(training => new Date(training.date) >= new Date())
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     .slice(0, 3);
 
@@ -66,6 +83,17 @@ const HomePage: React.FC = () => {
 
   const isCoach = profile?.role === 'coach';
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 font-inter">
+        <Header title="Início" />
+        <div className="flex items-center justify-center h-96">
+          <div className="text-white text-lg">Carregando...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 font-inter">
       <Header 
@@ -84,7 +112,7 @@ const HomePage: React.FC = () => {
         }
       />
       
-      <div className="p-6 pb-24 space-y-6 max-w-4xl mx-auto">
+      <div className="p-6 pb-32 space-y-6 max-w-4xl mx-auto min-h-screen">
         {/* Welcome Section */}
         <Card className="bg-gradient-to-r from-white to-purple-50 border-0 shadow-lg">
           <CardContent className="p-6">
@@ -95,7 +123,7 @@ const HomePage: React.FC = () => {
                   alt="Profile picture" 
                 />
                 <AvatarFallback className="bg-gradient-to-br from-purple-600 to-purple-800 text-white font-bold text-xl">
-                  {profile?.name?.charAt(0) || 'U'}
+                  {profile?.name?.charAt(0)?.toUpperCase() || 'U'}
                 </AvatarFallback>
               </Avatar>
               <div>
@@ -115,8 +143,8 @@ const HomePage: React.FC = () => {
           <Card className="bg-gradient-to-br from-blue-500 to-blue-600 border-0 shadow-lg">
             <CardContent className="p-4 text-center text-white">
               <Calendar className="h-8 w-8 mx-auto mb-2" />
-              <p className="text-2xl font-bold">{upcomingGames.length}</p>
-              <p className="text-sm opacity-90">Próximos jogos</p>
+              <p className="text-2xl font-bold">{upcomingGames.length + upcomingTrainings.length}</p>
+              <p className="text-sm opacity-90">Próximas atividades</p>
             </CardContent>
           </Card>
           
@@ -163,6 +191,50 @@ const HomePage: React.FC = () => {
                         
                         <div className="text-right">
                           <div className="w-3 h-3 rounded-full bg-purple-500 ml-auto mb-1"></div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Próximos Treinos */}
+        {upcomingTrainings.length > 0 && (
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-white">Próximos Treinos</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/agenda')}
+                className="text-white hover:bg-white/20"
+              >
+                Ver todos
+              </Button>
+            </div>
+            
+            <div className="space-y-3">
+              {upcomingTrainings.map((training) => {
+                const { dayOfWeek, shortDate } = formatDate(training.date);
+                return (
+                  <Card key={training.id} className="bg-gradient-to-r from-white to-blue-50 border-0 shadow-md">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-blue-900">
+                            Treino
+                          </h4>
+                          <p className="text-sm text-blue-600">
+                            {dayOfWeek}, {shortDate} • {training.time}
+                          </p>
+                          <p className="text-xs text-blue-500">{training.location}</p>
+                        </div>
+                        
+                        <div className="text-right">
+                          <div className="w-3 h-3 rounded-full bg-blue-500 ml-auto mb-1"></div>
                         </div>
                       </div>
                     </CardContent>
@@ -260,6 +332,17 @@ const HomePage: React.FC = () => {
           <PostsList />
         </div>
       </div>
+
+      {/* Fixed Add Button for Coaches */}
+      {isCoach && (
+        <Button
+          onClick={() => navigate('/add')}
+          className="fixed bottom-24 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 shadow-lg z-10"
+          size="icon"
+        >
+          <Plus className="h-6 w-6 text-white" />
+        </Button>
+      )}
     </div>
   );
 };

@@ -104,6 +104,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({ children }
 
   const fetchGames = async () => {
     try {
+      console.log('Fetching games...');
       const { data, error } = await supabase
         .from('games')
         .select('*')
@@ -114,6 +115,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({ children }
         return;
       }
       
+      console.log('Games fetched:', data);
       if (data) {
         const transformedGames = data.map(game => ({
           ...game,
@@ -129,6 +131,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({ children }
 
   const fetchTrainings = async () => {
     try {
+      console.log('Fetching trainings...');
       const { data, error } = await supabase
         .from('trainings')
         .select('*')
@@ -139,6 +142,7 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({ children }
         return;
       }
       
+      console.log('Trainings fetched:', data);
       if (data) {
         const transformedTrainings = data.map(training => ({
           ...training,
@@ -251,14 +255,21 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({ children }
 
   const addGame = async (gameData: any) => {
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        return { success: false, error: 'Usuário não autenticado' };
+      }
+
       const transformedData = {
-        created_by: gameData.created_by,
+        created_by: userData.user.id,
         date: gameData.date,
         time: gameData.time,
         location: gameData.location,
         opponent: gameData.opponent,
         uniform: gameData.uniform || 'home'
       };
+
+      console.log('Adding game with data:', transformedData);
 
       const { error } = await supabase
         .from('games')
@@ -279,13 +290,20 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({ children }
 
   const addTraining = async (trainingData: any) => {
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        return { success: false, error: 'Usuário não autenticado' };
+      }
+
       const transformedData = {
-        created_by: trainingData.created_by,
+        created_by: userData.user.id,
         date: trainingData.date,
         time: trainingData.time,
         location: trainingData.location,
         uniform: trainingData.uniform || 'training'
       };
+
+      console.log('Adding training with data:', transformedData);
 
       const { error } = await supabase
         .from('trainings')
@@ -306,8 +324,13 @@ export const DataProvider: React.FC<{children: React.ReactNode}> = ({ children }
 
   const addAnnouncement = async (announcementData: any) => {
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        return { success: false, error: 'Usuário não autenticado' };
+      }
+
       const transformedData = {
-        created_by: announcementData.created_by,
+        created_by: userData.user.id,
         title: announcementData.title,
         message: announcementData.message,
         author: announcementData.author,
