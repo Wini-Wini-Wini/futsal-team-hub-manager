@@ -129,8 +129,21 @@ html, body {
 }
 
 /* Ensure proper spacing at bottom for navigation and floating buttons */
+.pb-24 {
+  padding-bottom: 6rem !important;
+}
+
 .pb-32 {
   padding-bottom: 8rem !important;
+}
+
+.pb-40 {
+  padding-bottom: 10rem !important;
+}
+
+/* Specific bottom padding for forms */
+.form-bottom-padding {
+  padding-bottom: 12rem !important;
 }
 
 /* Improve text rendering */
@@ -181,4 +194,16 @@ button {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+}
+
+/* Ensure forms have proper spacing */
+.form-container {
+  padding-bottom: 12rem;
+}
+
+/* Better spacing for mobile forms */
+@media (max-width: 480px) {
+  .form-container {
+    padding-bottom: 14rem;
+  }
 }

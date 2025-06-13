@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -42,12 +42,31 @@ interface PostCardProps {
 }
 
 const PostCard: React.FC<PostCardProps> = ({ post, onDelete }) => {
-  const { user, profile } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [authorProfile, setAuthorProfile] = useState<{ avatar_url?: string; name?: string } | null>(null);
   
   // User can delete if they are the author of the post
   const canDelete = user?.id === post.created_by;
+
+  useEffect(() => {
+    const fetchAuthorProfile = async () => {
+      if (post.created_by) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('avatar_url, name')
+          .eq('id', post.created_by)
+          .single();
+        
+        if (data) {
+          setAuthorProfile(data);
+        }
+      }
+    };
+
+    fetchAuthorProfile();
+  }, [post.created_by]);
   
   const formatDate = (dateStr: string) => {
     const date = parseISO(dateStr);
@@ -104,16 +123,16 @@ const PostCard: React.FC<PostCardProps> = ({ post, onDelete }) => {
             <div className="flex items-center">
               <Avatar className="w-12 h-12">
                 <AvatarImage 
-                  src={profile?.avatar_url || ''} 
+                  src={authorProfile?.avatar_url || ''} 
                   alt="Profile picture" 
                 />
                 <AvatarFallback className="bg-gradient-to-br from-purple-600 to-purple-800 text-white font-bold">
-                  {post.author_name?.charAt(0) || '?'}
+                  {(authorProfile?.name || post.author_name)?.charAt(0) || '?'}
                 </AvatarFallback>
               </Avatar>
               
               <div className="ml-4">
-                <p className="font-bold text-gray-900">{post.author_name || 'Treinador'}</p>
+                <p className="font-bold text-gray-900">{authorProfile?.name || post.author_name || 'Treinador'}</p>
                 <p className="text-sm text-purple-600 font-medium">{formatDate(post.created_at)}</p>
               </div>
             </div>

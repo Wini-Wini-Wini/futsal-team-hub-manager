@@ -1,35 +1,39 @@
 
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { AuthProvider } from './contexts/AuthContext';
-import { DataProvider } from './contexts/DataContext';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import HomePage from './pages/HomePage';
-import AgendaPage from './pages/AgendaPage';
-import AnnouncementsPage from './pages/AnnouncementsPage';
-import MenuPage from './pages/MenuPage';
-import ProfilePage from './pages/ProfilePage';
-import ProfileEditPage from './pages/ProfileEditPage';
-import AddPage from './pages/AddPage';
-import EditGamePage from './pages/EditGamePage';
-import EditTrainingPage from './pages/EditTrainingPage';
-import EditAnnouncementPage from './pages/EditAnnouncementPage';
-import NotFound from './pages/NotFound';
-import { Layout } from './components/Layout';
-import Index from './pages/Index';
-import { Toaster } from "@/components/ui/toaster"
+import { Suspense } from "react";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import { DataProvider } from "./contexts/DataContext";
+import { Layout } from "./components/Layout";
+import Index from "./pages/Index";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
+import HomePage from "./pages/HomePage";
+import AgendaPage from "./pages/AgendaPage";
+import AnnouncementsPage from "./pages/AnnouncementsPage";
+import MenuPage from "./pages/MenuPage";
+import ProfilePage from "./pages/ProfilePage";
+import ProfileEditPage from "./pages/ProfileEditPage";
+import AddPage from "./pages/AddPage";
+import EditGamePage from "./pages/EditGamePage";
+import EditTrainingPage from "./pages/EditTrainingPage";
+import EditAnnouncementPage from "./pages/EditAnnouncementPage";
+import FeedbacksPage from "./pages/FeedbacksPage";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <Router>
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
         <AuthProvider>
           <DataProvider>
-            <Toaster />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<LoginPage />} />
@@ -40,6 +44,7 @@ function App() {
               <Route path="/menu" element={<Layout><MenuPage /></Layout>} />
               <Route path="/profile" element={<Layout><ProfilePage /></Layout>} />
               <Route path="/profile/edit" element={<Layout><ProfileEditPage /></Layout>} />
+              <Route path="/feedbacks" element={<Layout><FeedbacksPage /></Layout>} />
               <Route path="/add" element={<Layout><AddPage /></Layout>} />
               <Route path="/edit-game/:id" element={<Layout><EditGamePage /></Layout>} />
               <Route path="/edit-training/:id" element={<Layout><EditTrainingPage /></Layout>} />
@@ -48,9 +53,9 @@ function App() {
             </Routes>
           </DataProvider>
         </AuthProvider>
-      </Router>
-    </QueryClientProvider>
-  );
-}
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;
