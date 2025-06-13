@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -17,6 +16,7 @@ interface Feedback {
   created_at: string;
   target_type: string;
   target_id: string;
+  user_id: string;
   profiles?: {
     name: string;
   };
@@ -41,18 +41,37 @@ const ProfilePage: React.FC = () => {
   const fetchFeedbacks = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      // Buscar feedback e depois buscar os perfis dos usuários separadamente
+      const { data: feedbackData, error: feedbackError } = await supabase
         .from('feedback')
-        .select(`
-          *,
-          profiles:user_id (name)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setFeedbacks(data || []);
+      if (feedbackError) throw feedbackError;
+
+      if (feedbackData && feedbackData.length > 0) {
+        // Buscar os perfis dos usuários que fizeram feedback
+        const userIds = [...new Set(feedbackData.map(f => f.user_id))];
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, name')
+          .in('id', userIds);
+
+        if (profilesError) throw profilesError;
+
+        // Combinar os dados
+        const feedbacksWithProfiles = feedbackData.map(feedback => ({
+          ...feedback,
+          profiles: profilesData?.find(p => p.id === feedback.user_id) || { name: 'Usuário desconhecido' }
+        }));
+
+        setFeedbacks(feedbacksWithProfiles);
+      } else {
+        setFeedbacks([]);
+      }
     } catch (error) {
       console.error('Error fetching feedbacks:', error);
+      setFeedbacks([]);
     } finally {
       setLoading(false);
     }
@@ -66,7 +85,7 @@ const ProfilePage: React.FC = () => {
         showHomeButton={true} 
       />
       
-      <main className="p-6 pb-24 max-w-4xl mx-auto">
+      <main className="p-6 pb-32 max-w-4xl mx-auto">
         <Card className="bg-gradient-to-br from-white to-purple-50 border-0 shadow-lg">
           <CardContent className="p-6">
             {/* Profile Header */}
