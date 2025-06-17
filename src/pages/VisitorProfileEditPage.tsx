@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { Camera, Save, ArrowLeft } from 'lucide-react';
+import { Camera, Save } from 'lucide-react';
 
 const VisitorProfileEditPage: React.FC = () => {
   const { profile, updateProfile } = useAuth();
@@ -68,16 +68,7 @@ const VisitorProfileEditPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 font-inter">
       <Header 
         title="Editar Perfil" 
-        leftElement={
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/visitor/profile')}
-            className="text-white hover:bg-white/20"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-        }
+        showBackButton={true}
       />
       
       <div className="p-6 pb-40 max-w-4xl mx-auto">
