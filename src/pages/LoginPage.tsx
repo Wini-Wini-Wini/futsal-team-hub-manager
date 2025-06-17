@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Eye, EyeOff, LogIn } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -54,13 +54,17 @@ const LoginPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 flex items-center justify-center p-4 font-inter">
       <Card className="w-full max-w-md bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
         <CardHeader className="text-center pb-2">
-          <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-purple-800 rounded-full flex items-center justify-center mx-auto mb-4">
-            <LogIn className="h-8 w-8 text-white" />
+          <div className="w-24 h-24 mx-auto mb-4">
+            <img 
+              src="/lovable-uploads/17cdb063-665a-4886-b459-6deb3c3e1035.png" 
+              alt="Female Futsal Logo" 
+              className="w-full h-full object-contain"
+            />
           </div>
-          <CardTitle className="text-2xl font-bold text-purple-900">
+          <CardTitle className="text-3xl font-bold text-purple-900 mb-2">
             Female Futsal
           </CardTitle>
-          <p className="text-purple-600">Entre na sua conta</p>
+          <p className="text-purple-600 text-lg">Entre na sua conta</p>
         </CardHeader>
         
         <CardContent className="space-y-6">
@@ -122,11 +126,11 @@ const LoginPage: React.FC = () => {
                   <Button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white"
+                    className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white py-3 text-lg font-semibold"
                   >
                     {isLoading ? (
                       <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
                         Entrando...
                       </>
                     ) : (
@@ -141,7 +145,7 @@ const LoginPage: React.FC = () => {
           <div className="text-center pt-4 border-t border-purple-200">
             <p className="text-purple-600 text-sm">
               Não tem uma conta?{' '}
-              <Link to="/register" className="text-purple-800 hover:text-purple-900 font-medium">
+              <Link to="/register" className="text-purple-800 hover:text-purple-900 font-medium underline">
                 Registre-se aqui
               </Link>
             </p>
