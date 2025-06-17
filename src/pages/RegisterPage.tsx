@@ -1,262 +1,252 @@
 
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth, UserRole } from '../contexts/AuthContext';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { UserRole } from '../contexts/AuthContext';
-import Header from '@/components/Header';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Eye, EyeOff, UserPlus } from 'lucide-react';
 
 const RegisterPage: React.FC = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [accessKey, setAccessKey] = useState('');
-  const [role, setRole] = useState<UserRole>('player');
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    phone: ''
+  });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [registrationSuccess, setRegistrationSuccess] = useState(false);
-  
-  const { register, isAuthenticated } = useAuth();
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [selectedRole, setSelectedRole] = useState<UserRole>('player');
+  const { register } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/');
-    }
-  }, [isAuthenticated, navigate]);
-  
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate form fields
-    if (!name || !email || !password || !confirmPassword || !accessKey) {
-      toast({
-        title: "Campos obrigatórios",
-        description: "Por favor, preencha todos os campos",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Validate password confirmation
-    if (password !== confirmPassword) {
-      toast({
-        title: "Senhas diferentes",
-        description: "As senhas não coincidem",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Validate password length
-    if (password.length < 6) {
-      toast({
-        title: "Senha muito curta",
-        description: "A senha deve ter pelo menos 6 caracteres",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Validate access key
-    if (accessKey !== 'female123') {
-      toast({
-        title: "Senha de acesso inválida",
-        description: "A senha de acesso fornecida é inválida",
-        variant: "destructive"
-      });
-      return;
-    }
-    
     setIsLoading(true);
-    
+    setError('');
+    setSuccess('');
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('As senhas não coincidem');
+      setIsLoading(false);
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setError('A senha deve ter pelo menos 6 caracteres');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const { success, error } = await register(email, password, name, role);
+      const result = await register(
+        formData.email, 
+        formData.password, 
+        formData.name, 
+        selectedRole,
+        formData.phone
+      );
       
-      if (success) {
-        setRegistrationSuccess(true);
-        // No need to navigate here as we'll show the success page with a button to return to login
+      if (result.success) {
+        setSuccess('Conta criada com sucesso! Redirecionando para o login...');
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
       } else {
-        toast({
-          title: "Erro ao criar conta",
-          description: error || "Ocorreu um erro ao criar sua conta",
-          variant: "destructive"
-        });
+        setError(result.error || 'Erro ao criar conta');
       }
-    } catch (error) {
-      console.error('Registration error:', error);
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao registrar sua conta",
-        variant: "destructive"
-      });
+    } catch (err) {
+      setError('Erro inesperado ao criar conta');
     } finally {
       setIsLoading(false);
     }
   };
-  
-  // Render success page
-  const renderSuccessPage = () => {
-    return (
-      <div className="min-h-screen flex flex-col bg-[#482683]">
-        <div className="flex-1 flex flex-col items-center justify-center p-8">
-          <img 
-            src="/lovable-uploads/17cdb063-665a-4886-b459-6deb3c3e1035.png" 
-            alt="Female Futsal Logo" 
-            className="w-48 h-48 object-contain mx-auto mb-8"
-          />
-          <p className="text-white text-xl font-semibold text-center mb-8">
-            SUAS INFORMAÇÕES FORAM ENVIADAS COM SUCESSO!!
-          </p>
-          
-          <Button
-            onClick={() => navigate('/login')}
-            className="w-full py-6 bg-[#F2B705] text-black font-bold rounded-md text-lg uppercase"
-          >
-            VOLTAR AO LOGIN
-          </Button>
-        </div>
-      </div>
-    );
+
+  const roleLabels = {
+    player: 'Aluna',
+    coach: 'Treinador(a)',
+    visitor: 'Visitante'
   };
-  
-  // Render registration form
-  const renderRegistrationForm = () => {
-    return (
-      <div className="min-h-screen flex flex-col bg-[#482683]">
-        <Header 
-          title="CRIAR CONTA" 
-          showBackButton={true}
-        />
-        
-        <div className="flex-1 flex flex-col items-center p-8">
-          <div className="w-full flex-1 flex flex-col">
-            <div className="flex flex-col items-center mb-6">
-              <img 
-                src="/lovable-uploads/17cdb063-665a-4886-b459-6deb3c3e1035.png" 
-                alt="Female Futsal Logo" 
-                className="w-32 h-32 object-contain mx-auto"
-              />
-              <div className="mt-2 text-center">
-                <p className="text-2xl font-bold text-[#1A1F2C]">FEMALE</p>
-                <p className="text-2xl font-bold text-white">FUTSAL</p>
-              </div>
-            </div>
-            
-            <div className="bg-[#745AA9] rounded-md p-4 mt-4 mb-4">
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="block font-bold text-white" htmlFor="name">NOME:</label>
-                  <Input
-                    id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full px-4 py-3 rounded bg-white border-0 mt-2"
-                    placeholder="DIGITE SEU NOME"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block font-bold text-white" htmlFor="email">EMAIL:</label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-4 py-3 rounded bg-white border-0 mt-2"
-                    placeholder="DIGITE SEU EMAIL"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block font-bold text-white" htmlFor="role">CATEGORIA:</label>
-                  <select
-                    id="role"
-                    value={role}
-                    onChange={(e) => setRole(e.target.value as UserRole)}
-                    className="w-full h-10 px-3 py-2 border-0 rounded bg-white mt-2"
-                  >
-                    <option value="coach">TREINADOR(A)</option>
-                    <option value="player">ATLETA</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label className="block font-bold text-white" htmlFor="password">SENHA:</label>
-                  <div className="relative mt-2">
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-4 py-3 rounded bg-white border-0"
-                      placeholder="DIGITE SUA SENHA"
-                    />
-                    <button 
-                      type="button" 
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                    </button>
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block font-bold text-white" htmlFor="confirmPassword">DIGITE NOVAMENTE SUA SENHA:</label>
-                  <div className="relative mt-2">
-                    <Input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className="w-full px-4 py-3 rounded bg-white border-0"
-                      placeholder="REPITA SUA SENHA"
-                    />
-                    <button 
-                      type="button" 
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    >
-                      {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                    </button>
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block font-bold text-white" htmlFor="accessKey">SENHA DE ACESSO:</label>
-                  <Input
-                    id="accessKey"
-                    type="password"
-                    value={accessKey}
-                    onChange={(e) => setAccessKey(e.target.value)}
-                    className="w-full px-4 py-3 rounded bg-white border-0 mt-2"
-                    placeholder="DIGITE O CÓDIGO FORNECIDO PELA ORGANIZAÇÃO"
-                  />
-                </div>
-                
-                <Button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full py-6 bg-[#F2B705] text-black font-bold rounded-md text-lg uppercase mt-4"
-                >
-                  {isLoading ? "ENVIANDO..." : "ENVIAR"}
-                </Button>
-              </form>
-            </div>
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 flex items-center justify-center p-4 font-inter">
+      <Card className="w-full max-w-md bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
+        <CardHeader className="text-center pb-2">
+          <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-purple-800 rounded-full flex items-center justify-center mx-auto mb-4">
+            <UserPlus className="h-8 w-8 text-white" />
           </div>
-        </div>
-      </div>
-    );
-  };
-  
-  return registrationSuccess ? renderSuccessPage() : renderRegistrationForm();
+          <CardTitle className="text-2xl font-bold text-purple-900">
+            Female Futsal
+          </CardTitle>
+          <p className="text-purple-600">Crie sua conta</p>
+        </CardHeader>
+        
+        <CardContent className="space-y-6">
+          <Tabs value={selectedRole} onValueChange={(value) => setSelectedRole(value as UserRole)}>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="player">Aluna</TabsTrigger>
+              <TabsTrigger value="coach">Treinador(a)</TabsTrigger>
+              <TabsTrigger value="visitor">Visitante</TabsTrigger>
+            </TabsList>
+            
+            {Object.entries(roleLabels).map(([role, label]) => (
+              <TabsContent key={role} value={role} className="mt-6">
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {error && (
+                    <Alert className="border-red-200 bg-red-50">
+                      <AlertDescription className="text-red-700">
+                        {error}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  
+                  {success && (
+                    <Alert className="border-green-200 bg-green-50">
+                      <AlertDescription className="text-green-700">
+                        {success}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="name" className="text-purple-900 font-medium">
+                      Nome Completo
+                    </Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      type="text"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className="border-purple-200 focus:border-purple-500"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-purple-900 font-medium">
+                      Email
+                    </Label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      className="border-purple-200 focus:border-purple-500"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="phone" className="text-purple-900 font-medium">
+                      Telefone (opcional)
+                    </Label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      className="border-purple-200 focus:border-purple-500"
+                      placeholder="(11) 99999-9999"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-purple-900 font-medium">
+                      Senha
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        name="password"
+                        type={showPassword ? 'text' : 'password'}
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        className="border-purple-200 focus:border-purple-500 pr-10"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-purple-600 hover:text-purple-800"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="confirmPassword" className="text-purple-900 font-medium">
+                      Confirmar Senha
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="confirmPassword"
+                        name="confirmPassword"
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        value={formData.confirmPassword}
+                        onChange={handleInputChange}
+                        className="border-purple-200 focus:border-purple-500 pr-10"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-purple-600 hover:text-purple-800"
+                      >
+                        {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white"
+                  >
+                    {isLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Criando conta...
+                      </>
+                    ) : (
+                      `Registrar como ${label}`
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
+            ))}
+          </Tabs>
+          
+          <div className="text-center pt-4 border-t border-purple-200">
+            <p className="text-purple-600 text-sm">
+              Já tem uma conta?{' '}
+              <Link to="/login" className="text-purple-800 hover:text-purple-900 font-medium">
+                Faça login aqui
+              </Link>
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 };
 
 export default RegisterPage;

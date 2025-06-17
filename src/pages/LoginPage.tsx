@@ -1,201 +1,153 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff } from 'lucide-react';
+import { useAuth, UserRole } from '../contexts/AuthContext';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { UserRole } from '../contexts/AuthContext';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Eye, EyeOff, LogIn } from 'lucide-react';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<UserRole>('player');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [showLoginForm, setShowLoginForm] = useState(false);
-  const { login, isAuthenticated } = useAuth();
+  const [error, setError] = useState('');
+  const [selectedRole, setSelectedRole] = useState<UserRole>('player');
+  const { login } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/');
-    }
-  }, [isAuthenticated, navigate]);
-
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!email || !password) {
-      toast({
-        title: "Erro de login",
-        description: "Email e senha são obrigatórios",
-        variant: "destructive"
-      });
-      return;
-    }
-    
     setIsLoading(true);
-    
+    setError('');
+
     try {
-      const { success, error } = await login(email, password, role);
-      
-      if (success) {
-        toast({
-          title: "Login realizado",
-          description: `Bem-vindo de volta, ${role === 'coach' ? 'Treinador(a)' : 'Atleta'}!`,
-        });
-        navigate('/');
+      const result = await login(email, password, selectedRole);
+      if (result.success) {
+        // Redirect based on role
+        if (selectedRole === 'visitor') {
+          navigate('/visitor/home');
+        } else {
+          navigate('/home');
+        }
       } else {
-        toast({
-          title: "Erro de login",
-          description: error || "Email ou senha inválidos",
-          variant: "destructive"
-        });
+        setError(result.error || 'Erro ao fazer login');
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      toast({
-        title: "Erro",
-        description: "Ocorreu um erro ao fazer login",
-        variant: "destructive"
-      });
+    } catch (err) {
+      setError('Erro inesperado ao fazer login');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const renderInitialScreen = () => {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8">
-        <div className="flex flex-col items-center mb-6">
-          <img 
-            src="/lovable-uploads/17cdb063-665a-4886-b459-6deb3c3e1035.png" 
-            alt="Female Futsal Logo" 
-            className="w-48 h-48 object-contain mx-auto"
-          />
-          <div className="mt-2 text-center">
-            <p className="text-3xl font-bold text-[#1A1F2C]">FEMALE</p>
-            <p className="text-3xl font-bold text-white">FUTSAL</p>
-          </div>
-        </div>
-        
-        <div className="w-full flex flex-col gap-4 mt-auto">
-          <Button
-            onClick={() => setShowLoginForm(true)}
-            className="w-full py-6 bg-white text-black font-bold rounded-md text-lg uppercase"
-          >
-            ENTRAR
-          </Button>
-          
-          <Button
-            onClick={() => navigate('/register')}
-            className="w-full py-6 bg-[#F2B705] text-black font-bold rounded-md text-lg uppercase"
-          >
-            CRIE SUA CONTA
-          </Button>
-        </div>
-      </div>
-    );
-  };
-
-  const renderLoginForm = () => {
-    return (
-      <div className="flex-1 flex flex-col items-center p-8">
-        <div className="flex flex-col items-center mb-6">
-          <img 
-            src="/lovable-uploads/17cdb063-665a-4886-b459-6deb3c3e1035.png" 
-            alt="Female Futsal Logo" 
-            className="w-48 h-48 object-contain mx-auto"
-          />
-          <div className="mt-2 text-center">
-            <p className="text-3xl font-bold text-[#1A1F2C]">FEMALE</p>
-            <p className="text-3xl font-bold text-white">FUTSAL</p>
-          </div>
-        </div>
-        
-        <form onSubmit={handleLogin} className="w-full mt-4">
-          <div className="mb-4 bg-[#745AA9] rounded-md p-4">
-            <label className="text-white text-lg" htmlFor="email">Email:</label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 rounded bg-white border-0 mt-2"
-              placeholder="seunome@gmail.com"
-            />
-          
-            <label className="text-white text-lg mt-4 block" htmlFor="password">Senha:</label>
-            <div className="relative mt-2">
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 rounded bg-white border-0"
-                placeholder="Digite sua senha"
-              />
-              <button 
-                type="button" 
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
-
-            <div className="mb-2 text-center mt-2">
-              <a href="#" className="text-white underline text-sm">
-                Esqueceu sua senha?
-              </a>
-            </div>
-
-            <div className="mb-6 mt-4">
-              <RadioGroup 
-                value={role} 
-                onValueChange={(value) => setRole(value as UserRole)}
-                className="flex flex-col space-y-3"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="coach" id="coach" className="bg-[#1A1F2C] border-[#1A1F2C]" />
-                  <label htmlFor="coach" className="text-white text-lg">TREINADOR(A)</label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="player" id="player" className="bg-[#1A1F2C] border-[#1A1F2C]" />
-                  <label htmlFor="player" className="text-white text-lg">ALUNA</label>
-                </div>
-              </RadioGroup>
-            </div>
-          </div>
-          
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-6 bg-[#F2B705] text-black font-bold rounded-md text-lg uppercase mt-4"
-          >
-            {isLoading ? "Entrando..." : "AVANÇAR"}
-          </Button>
-          
-          <div className="text-center mt-3">
-            <button 
-              type="button" 
-              onClick={() => setShowLoginForm(false)}
-              className="text-white underline text-sm uppercase"
-            >
-              Voltar à tela inicial
-            </button>
-          </div>
-        </form>
-      </div>
-    );
+  const roleLabels = {
+    player: 'Aluna',
+    coach: 'Treinador(a)',
+    visitor: 'Visitante'
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#482683]">
-      {showLoginForm ? renderLoginForm() : renderInitialScreen()}
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 flex items-center justify-center p-4 font-inter">
+      <Card className="w-full max-w-md bg-white/95 backdrop-blur-sm border-0 shadow-2xl">
+        <CardHeader className="text-center pb-2">
+          <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-purple-800 rounded-full flex items-center justify-center mx-auto mb-4">
+            <LogIn className="h-8 w-8 text-white" />
+          </div>
+          <CardTitle className="text-2xl font-bold text-purple-900">
+            Female Futsal
+          </CardTitle>
+          <p className="text-purple-600">Entre na sua conta</p>
+        </CardHeader>
+        
+        <CardContent className="space-y-6">
+          <Tabs value={selectedRole} onValueChange={(value) => setSelectedRole(value as UserRole)}>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="player">Aluna</TabsTrigger>
+              <TabsTrigger value="coach">Treinador(a)</TabsTrigger>
+              <TabsTrigger value="visitor">Visitante</TabsTrigger>
+            </TabsList>
+            
+            {Object.entries(roleLabels).map(([role, label]) => (
+              <TabsContent key={role} value={role} className="mt-6">
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {error && (
+                    <Alert className="border-red-200 bg-red-50">
+                      <AlertDescription className="text-red-700">
+                        {error}
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="email" className="text-purple-900 font-medium">
+                      Email
+                    </Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="border-purple-200 focus:border-purple-500"
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="password" className="text-purple-900 font-medium">
+                      Senha
+                    </Label>
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? 'text' : 'password'}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="border-purple-200 focus:border-purple-500 pr-10"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-purple-600 hover:text-purple-800"
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <Button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white"
+                  >
+                    {isLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Entrando...
+                      </>
+                    ) : (
+                      `Entrar como ${label}`
+                    )}
+                  </Button>
+                </form>
+              </TabsContent>
+            ))}
+          </Tabs>
+          
+          <div className="text-center pt-4 border-t border-purple-200">
+            <p className="text-purple-600 text-sm">
+              Não tem uma conta?{' '}
+              <Link to="/register" className="text-purple-800 hover:text-purple-900 font-medium">
+                Registre-se aqui
+              </Link>
+            </p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

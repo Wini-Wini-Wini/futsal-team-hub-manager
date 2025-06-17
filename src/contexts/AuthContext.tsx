@@ -1,10 +1,9 @@
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Session, User } from '@supabase/supabase-js';
 
-export type UserRole = 'coach' | 'player';
+export type UserRole = 'coach' | 'player' | 'visitor';
 
 export interface UserProfile {
   id: string;
@@ -118,9 +117,14 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
       // If we can't find the profile or there's an error, we'll proceed with login 
       // and check the role afterward
       if (!profileError && profileData && requestedRole && profileData.role !== requestedRole) {
+        const roleNames = {
+          coach: 'treinador(a)',
+          player: 'aluna',
+          visitor: 'visitante'
+        };
         return { 
           success: false, 
-          error: `Você não pode entrar como ${requestedRole === 'coach' ? 'treinador(a)' : 'aluna'} porque se registrou como ${profileData.role === 'coach' ? 'treinador(a)' : 'aluna'}.` 
+          error: `Você não pode entrar como ${roleNames[requestedRole]} porque se registrou como ${roleNames[profileData.role as UserRole]}.` 
         };
       }
 
@@ -144,9 +148,14 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
         if (!fetchError && userProfile && requestedRole && userProfile.role !== requestedRole) {
           // Wrong role, log the user out and return an error
           await supabase.auth.signOut();
+          const roleNames = {
+            coach: 'treinador(a)',
+            player: 'aluna',
+            visitor: 'visitante'
+          };
           return { 
             success: false, 
-            error: `Você não pode entrar como ${requestedRole === 'coach' ? 'treinador(a)' : 'aluna'} porque se registrou como ${userProfile.role === 'coach' ? 'treinador(a)' : 'aluna'}.`
+            error: `Você não pode entrar como ${roleNames[requestedRole]} porque se registrou como ${roleNames[userProfile.role as UserRole]}.`
           };
         }
       }
