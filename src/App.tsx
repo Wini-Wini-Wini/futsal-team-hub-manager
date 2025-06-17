@@ -8,7 +8,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { DataProvider } from "./contexts/DataContext";
 import { Layout } from "./components/Layout";
-import { VisitorLayout } from "./components/VisitorLayout";
 import Index from "./pages/Index";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -23,11 +22,6 @@ import EditGamePage from "./pages/EditGamePage";
 import EditTrainingPage from "./pages/EditTrainingPage";
 import EditAnnouncementPage from "./pages/EditAnnouncementPage";
 import FeedbacksPage from "./pages/FeedbacksPage";
-import VisitorHomePage from "./pages/VisitorHomePage";
-import AboutPage from "./pages/AboutPage";
-import VisitorMenuPage from "./pages/VisitorMenuPage";
-import VisitorProfilePage from "./pages/VisitorProfilePage";
-import VisitorProfileEditPage from "./pages/VisitorProfileEditPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -55,14 +49,6 @@ const App = () => (
               <Route path="/edit-game/:id" element={<Layout><EditGamePage /></Layout>} />
               <Route path="/edit-training/:id" element={<Layout><EditTrainingPage /></Layout>} />
               <Route path="/edit-announcement/:id" element={<Layout><EditAnnouncementPage /></Layout>} />
-              
-              {/* Visitor Routes */}
-              <Route path="/visitor/home" element={<VisitorLayout><VisitorHomePage /></VisitorLayout>} />
-              <Route path="/visitor/about" element={<VisitorLayout><AboutPage /></VisitorLayout>} />
-              <Route path="/visitor/menu" element={<VisitorLayout><VisitorMenuPage /></VisitorLayout>} />
-              <Route path="/visitor/profile" element={<VisitorLayout><VisitorProfilePage /></VisitorLayout>} />
-              <Route path="/visitor/profile/edit" element={<VisitorLayout><VisitorProfileEditPage /></VisitorLayout>} />
-              
               <Route path="*" element={<NotFound />} />
             </Routes>
           </DataProvider>

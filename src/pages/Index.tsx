@@ -5,23 +5,15 @@ import { useAuth } from '../contexts/AuthContext';
 
 const Index = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, profile } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated && profile) {
-      // Redirect based on user role
-      if (profile.role === 'visitor') {
-        navigate('/visitor/home');
-      } else {
-        navigate('/home');
-      }
-    } else if (isAuthenticated && !profile) {
-      // Wait for profile to load
-      return;
+    if (isAuthenticated) {
+      navigate('/home');
     } else {
       navigate('/login');
     }
-  }, [isAuthenticated, profile, navigate]);
+  }, [isAuthenticated, navigate]);
 
   // Show loading state while redirecting
   return (
