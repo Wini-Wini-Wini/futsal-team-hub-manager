@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -11,7 +10,7 @@ export interface UserProfile {
   name: string;
   email: string;
   phone?: string;
-  role: UserRole;
+  role: UserRole | 'visitor';
   avatar_url?: string;
 }
 
@@ -20,9 +19,11 @@ interface AuthContextType {
   profile: UserProfile | null;
   session: Session | null;
   isAuthenticated: boolean;
+  isVisitor: boolean;
   isLoading: boolean;
   login: (email: string, password: string, role?: UserRole) => Promise<{ success: boolean; error?: string }>;
   register: (email: string, password: string, name: string, role: UserRole, phone?: string) => Promise<{ success: boolean; error?: string }>;
+  loginAsVisitor: () => void;
   logout: () => Promise<void>;
   updateProfile: (data: Partial<UserProfile>) => Promise<{ success: boolean; error?: string }>;
   fetchProfile: () => Promise<void>;
@@ -42,6 +43,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [isVisitor, setIsVisitor] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -70,6 +72,20 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   };
 
   useEffect(() => {
+    // Check if user is visiting as visitor
+    const visitorStatus = localStorage.getItem('isVisitor');
+    if (visitorStatus === 'true') {
+      setIsVisitor(true);
+      setProfile({
+        id: 'visitor',
+        name: 'Visitante',
+        email: '',
+        role: 'visitor'
+      });
+      setIsLoading(false);
+      return;
+    }
+
     const setupAuthListener = async () => {
       // Set up auth state listener FIRST
       const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -105,6 +121,17 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
 
     setupAuthListener();
   }, []);
+
+  const loginAsVisitor = () => {
+    localStorage.setItem('isVisitor', 'true');
+    setIsVisitor(true);
+    setProfile({
+      id: 'visitor',
+      name: 'Visitante',
+      email: '',
+      role: 'visitor'
+    });
+  };
 
   const login = async (email: string, password: string, requestedRole?: UserRole) => {
     try {
@@ -193,8 +220,13 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    // Navigation will be handled by components that consume this context
+    if (isVisitor) {
+      localStorage.removeItem('isVisitor');
+      setIsVisitor(false);
+      setProfile(null);
+    } else {
+      await supabase.auth.signOut();
+    }
   };
 
   const updateProfile = async (data: Partial<UserProfile>) => {
@@ -230,10 +262,12 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
       user, 
       profile, 
       session,
-      isAuthenticated: !!session, 
+      isAuthenticated: !!session || isVisitor, 
+      isVisitor,
       isLoading, 
       login, 
       register,
+      loginAsVisitor,
       logout, 
       updateProfile,
       fetchProfile 

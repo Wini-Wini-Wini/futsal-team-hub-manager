@@ -15,7 +15,7 @@ const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showLoginForm, setShowLoginForm] = useState(false);
-  const { login, isAuthenticated } = useAuth();
+  const { login, loginAsVisitor, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -67,6 +67,11 @@ const LoginPage: React.FC = () => {
     }
   };
 
+  const handleVisitorLogin = () => {
+    loginAsVisitor();
+    navigate('/');
+  };
+
   const renderInitialScreen = () => {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8">
@@ -95,6 +100,13 @@ const LoginPage: React.FC = () => {
             className="w-full py-6 bg-[#F2B705] text-black font-bold rounded-md text-lg uppercase"
           >
             CRIE SUA CONTA
+          </Button>
+
+          <Button
+            onClick={handleVisitorLogin}
+            className="w-full py-6 bg-gray-600 text-white font-bold rounded-md text-lg uppercase"
+          >
+            ENTRAR COMO VISITANTE
           </Button>
         </div>
       </div>

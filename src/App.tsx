@@ -1,4 +1,3 @@
-
 import { Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -23,6 +22,10 @@ import EditTrainingPage from "./pages/EditTrainingPage";
 import EditAnnouncementPage from "./pages/EditAnnouncementPage";
 import FeedbacksPage from "./pages/FeedbacksPage";
 import NotFound from "./pages/NotFound";
+import { VisitorLayout } from "./components/VisitorLayout";
+import VisitorHomePage from "./pages/VisitorHomePage";
+import VisitorProfilePage from "./pages/VisitorProfilePage";
+import AboutPage from "./pages/AboutPage";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +41,13 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              
+              {/* Visitor routes */}
+              <Route path="/visitor-home" element={<VisitorLayout><VisitorHomePage /></VisitorLayout>} />
+              <Route path="/visitor-profile" element={<VisitorLayout><VisitorProfilePage /></VisitorLayout>} />
+              <Route path="/about" element={<VisitorLayout><AboutPage /></VisitorLayout>} />
+              
+              {/* Authenticated routes */}
               <Route path="/home" element={<Layout><HomePage /></Layout>} />
               <Route path="/agenda" element={<Layout><AgendaPage /></Layout>} />
               <Route path="/announcements" element={<Layout><AnnouncementsPage /></Layout>} />
@@ -49,6 +59,7 @@ const App = () => (
               <Route path="/edit-game/:id" element={<Layout><EditGamePage /></Layout>} />
               <Route path="/edit-training/:id" element={<Layout><EditTrainingPage /></Layout>} />
               <Route path="/edit-announcement/:id" element={<Layout><EditAnnouncementPage /></Layout>} />
+              
               <Route path="*" element={<NotFound />} />
             </Routes>
           </DataProvider>

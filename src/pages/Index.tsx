@@ -5,15 +5,17 @@ import { useAuth } from '../contexts/AuthContext';
 
 const Index = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isVisitor } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isVisitor) {
+      navigate('/visitor-home');
+    } else if (isAuthenticated) {
       navigate('/home');
     } else {
       navigate('/login');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, isVisitor, navigate]);
 
   // Show loading state while redirecting
   return (
