@@ -22,38 +22,47 @@ const AboutPage: React.FC = () => {
             
             <div className="space-y-6 text-purple-800">
               <div>
-                <h2 className="text-xl font-bold mb-3">Nossa Missão</h2>
-                <p className="text-base leading-relaxed">
-                  Promover o futsal feminino através do desenvolvimento técnico, tático e humano das nossas atletas, 
-                  criando um ambiente de aprendizado, crescimento e conquistas no esporte.
+                <h2 className="text-xl font-bold mb-3 text-center bg-purple-200 rounded-lg py-2 text-purple-900">
+                  NOSSA HISTÓRIA
+                </h2>
+                <p className="text-base leading-relaxed text-justify">
+                  A ASSOCIAÇÃO FEMALE FUTSAL É SUCESSORA DO POPIOLSKI FUTEBOL CLUBE. SUA ATUAÇÃO NO FUTSAL FEMININO SE COMPÕE DE ATLETAS QUE SE FUNDE COM O INÍCIO DA PRÁTICA DA MODALIDADE NO MUNICÍPIO.
+                </p>
+                <p className="text-base leading-relaxed text-justify mt-4">
+                  NO INÍCIO DA DÉCADA DE 1990, UM GRUPO DE MULHERES, LIDERADAS PELA SRA. CATARINA REATTO POPIOLSKI, PASSARAM A SE REUNIR PARA DESFRUTAR DO JOGO NOS HORÁRIOS DE LAZER E FORAM CONQUISTANDO MAIS ADEPTAS DO JOGO DAS QUADRAS EM CHAPECÓ.
+                </p>
+                <p className="text-base leading-relaxed text-justify mt-4">
+                  LOGO SURGIRAM OUTROS GRUPOS NA CIDADE PARA PRATICAR A MODALIDADE, O QUE ATRAIU A REALIZAÇÃO DE CAMPEONATOS E TORNEIOS.
                 </p>
               </div>
 
               <div>
-                <h2 className="text-xl font-bold mb-3">Nossa Visão</h2>
-                <p className="text-base leading-relaxed">
-                  Ser referência no futsal feminino, formando atletas completas e contribuindo para o crescimento 
-                  da modalidade no cenário esportivo nacional.
-                </p>
+                <h2 className="text-xl font-bold mb-3 text-center bg-purple-200 rounded-lg py-2 text-purple-900">
+                  PRINCIPAIS TÍTULOS
+                </h2>
+                <div className="space-y-2 text-base text-center">
+                  <p className="font-semibold">3X CAMPEÃO MUNDIAL COPA DAS NAÇÕES</p>
+                  <p className="font-semibold">2X CAMPEÃO DA LIBERTADORES</p>
+                  <p className="font-semibold">6X CAMPEÃO DA LIGA NACIONAL</p>
+                  <p className="font-semibold">7X CAMPEÃO DA TAÇA BRASIL</p>
+                  <p className="font-semibold">9X CAMPEÃO CATARINENSE</p>
+                </div>
               </div>
 
-              <div>
-                <h2 className="text-xl font-bold mb-3">Nossos Valores</h2>
-                <ul className="list-disc list-inside space-y-2 text-base">
-                  <li>Dedicação e comprometimento com o esporte</li>
-                  <li>Trabalho em equipe e união</li>
-                  <li>Respeito e fair play</li>
-                  <li>Desenvolvimento pessoal e profissional</li>
-                  <li>Excelência nos treinamentos e competições</li>
-                </ul>
-              </div>
-
-              <div>
-                <h2 className="text-xl font-bold mb-3">Estrutura</h2>
-                <p className="text-base leading-relaxed">
-                  Contamos com uma equipe técnica qualificada, instalações adequadas para treinamentos e 
-                  um programa de desenvolvimento que atende atletas de diferentes níveis e idades.
-                </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="text-center">
+                  <div className="bg-purple-200 rounded-lg py-2 mb-2">
+                    <h3 className="text-lg font-bold text-purple-900">TELEFONE</h3>
+                  </div>
+                  <p className="font-semibold text-purple-900">(49) 99911-0313</p>
+                </div>
+                
+                <div className="text-center">
+                  <div className="bg-purple-200 rounded-lg py-2 mb-2">
+                    <h3 className="text-lg font-bold text-purple-900">EMAIL</h3>
+                  </div>
+                  <p className="font-semibold text-purple-900">FEMALEFUT@GMAIL.COM</p>
+                </div>
               </div>
             </div>
           </CardContent>
