@@ -3,8 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
 import Header from '@/components/Header';
-import { MessageSquare } from 'lucide-react';
+import { MessageSquare, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface Feedback {
   id: string;
@@ -17,10 +21,20 @@ interface Feedback {
   profiles?: {
     name: string;
   };
+  game_info?: {
+    opponent: string;
+    date: string;
+    location: string;
+  };
+  training_info?: {
+    date: string;
+    location: string;
+  };
 }
 
 const FeedbacksPage: React.FC = () => {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
+  const { toast } = useToast();
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -49,13 +63,34 @@ const FeedbacksPage: React.FC = () => {
 
         if (profilesError) throw profilesError;
 
+        // Buscar informações dos jogos e treinos
+        const gameIds = feedbackData.filter(f => f.target_type === 'game').map(f => f.target_id);
+        const trainingIds = feedbackData.filter(f => f.target_type === 'training').map(f => f.target_id);
+
+        const gamesPromise = gameIds.length > 0 ? 
+          supabase.from('games').select('id, opponent, date, location').in('id', gameIds) :
+          Promise.resolve({ data: [], error: null });
+
+        const trainingsPromise = trainingIds.length > 0 ?
+          supabase.from('trainings').select('id, date, location').in('id', trainingIds) :
+          Promise.resolve({ data: [], error: null });
+
+        const [gamesResult, trainingsResult] = await Promise.all([gamesPromise, trainingsPromise]);
+
+        if (gamesResult.error) throw gamesResult.error;
+        if (trainingsResult.error) throw trainingsResult.error;
+
         // Combinar os dados
-        const feedbacksWithProfiles = feedbackData.map(feedback => ({
+        const feedbacksWithInfo = feedbackData.map(feedback => ({
           ...feedback,
-          profiles: profilesData?.find(p => p.id === feedback.user_id) || { name: 'Usuário desconhecido' }
+          profiles: profilesData?.find(p => p.id === feedback.user_id) || { name: 'Usuário desconhecido' },
+          game_info: feedback.target_type === 'game' ? 
+            gamesResult.data?.find(g => g.id === feedback.target_id) : undefined,
+          training_info: feedback.target_type === 'training' ?
+            trainingsResult.data?.find(t => t.id === feedback.target_id) : undefined
         }));
 
-        setFeedbacks(feedbacksWithProfiles);
+        setFeedbacks(feedbacksWithInfo);
       } else {
         setFeedbacks([]);
       }
@@ -65,6 +100,53 @@ const FeedbacksPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDeleteFeedback = async (feedbackId: string, feedbackUserId: string) => {
+    // Verificar se o usuário pode deletar (próprio feedback ou é coach)
+    if (user?.id !== feedbackUserId && profile?.role !== 'coach') {
+      toast({
+        title: "Erro",
+        description: "Você não tem permissão para deletar este feedback",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('feedback')
+        .delete()
+        .eq('id', feedbackId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Feedback removido",
+        description: "O feedback foi removido com sucesso"
+      });
+
+      // Recarregar feedbacks
+      fetchFeedbacks();
+    } catch (error) {
+      console.error('Error deleting feedback:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível remover o feedback",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const getTargetInfo = (feedback: Feedback) => {
+    if (feedback.target_type === 'game' && feedback.game_info) {
+      const date = format(new Date(feedback.game_info.date), "dd 'de' MMMM", { locale: ptBR });
+      return `Jogo vs ${feedback.game_info.opponent} - ${date}`;
+    } else if (feedback.target_type === 'training' && feedback.training_info) {
+      const date = format(new Date(feedback.training_info.date), "dd 'de' MMMM", { locale: ptBR });
+      return `Treino - ${date}`;
+    }
+    return feedback.target_type === 'game' ? 'Jogo' : 'Treino';
   };
 
   return (
@@ -102,52 +184,70 @@ const FeedbacksPage: React.FC = () => {
                 <div className="space-y-4">
                   {feedbacks.map((feedback) => (
                     <div key={feedback.id} className="bg-white rounded-lg p-6 shadow-sm border border-purple-100">
-                      <div className="flex items-start space-x-4">
-                        <div className="flex-shrink-0">
-                          <div className="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center text-white font-semibold text-lg">
-                            {feedback.profiles?.name?.charAt(0) || '?'}
-                          </div>
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-3">
-                            <p className="text-lg font-semibold text-gray-900">
-                              {feedback.profiles?.name || 'Usuário'}
-                            </p>
-                            
-                            <div className="flex items-center space-x-1">
-                              {[...Array(5)].map((_, i) => (
-                                <div
-                                  key={i}
-                                  className={`w-4 h-4 rounded-full ${
-                                    i < feedback.rating
-                                      ? 'bg-yellow-400'
-                                      : 'bg-gray-300'
-                                  }`}
-                                />
-                              ))}
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-start space-x-4 flex-1">
+                          <div className="flex-shrink-0">
+                            <div className="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center text-white font-semibold text-lg">
+                              {feedback.profiles?.name?.charAt(0) || '?'}
                             </div>
                           </div>
                           
-                          <p className="text-gray-700 mb-4 leading-relaxed">
-                            {feedback.comment}
-                          </p>
-                          
-                          <div className="flex items-center justify-between text-sm text-gray-500">
-                            <span className="bg-purple-100 text-purple-700 px-3 py-1 rounded-full font-medium">
-                              {feedback.target_type === 'game' ? 'Jogo' : 'Treino'}
-                            </span>
-                            <span>
-                              {new Date(feedback.created_at).toLocaleDateString('pt-BR', {
-                                day: '2-digit',
-                                month: 'long',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-3">
+                              <p className="text-lg font-semibold text-gray-900">
+                                {feedback.profiles?.name || 'Usuário'}
+                              </p>
+                              
+                              <div className="flex items-center space-x-1">
+                                {[...Array(5)].map((_, i) => (
+                                  <div
+                                    key={i}
+                                    className={`w-4 h-4 rounded-full ${
+                                      i < feedback.rating
+                                        ? 'bg-yellow-400'
+                                        : 'bg-gray-300'
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Informação sobre qual jogo/treino */}
+                            <div className="mb-3">
+                              <span className="inline-block bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
+                                {getTargetInfo(feedback)}
+                              </span>
+                            </div>
+                            
+                            <p className="text-gray-700 mb-4 leading-relaxed">
+                              {feedback.comment}
+                            </p>
+                            
+                            <div className="flex items-center justify-between text-sm text-gray-500">
+                              <span>
+                                {new Date(feedback.created_at).toLocaleDateString('pt-BR', {
+                                  day: '2-digit',
+                                  month: 'long',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </span>
+                            </div>
                           </div>
                         </div>
+
+                        {/* Botão de deletar - visível para o autor do feedback ou para coaches */}
+                        {(user?.id === feedback.user_id || profile?.role === 'coach') && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteFeedback(feedback.id, feedback.user_id)}
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50 ml-4"
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ))}

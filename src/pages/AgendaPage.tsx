@@ -8,12 +8,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useAuth } from '@/contexts/AuthContext';
-import { Plus, Clock, MapPin, Shirt } from 'lucide-react';
+import { Clock, MapPin, Shirt, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import FeedbackForm from '@/components/FeedbackForm';
+import FeedbackList from '@/components/FeedbackList';
 
 const AgendaPage: React.FC = () => {
-  const { games, trainings, fetchGames, fetchTrainings } = useData();
+  const { games, trainings, fetchGames, fetchTrainings, fetchFeedback } = useData();
   const { profile } = useAuth();
   const navigate = useNavigate();
 
@@ -41,7 +43,7 @@ const AgendaPage: React.FC = () => {
 
   const isCoach = profile?.role === 'coach';
 
-  const renderTrainingCard = (training: any) => {
+  const renderTrainingCard = (training: any, isPast: boolean = false) => {
     const { dayOfWeek, date } = formatDate(training.date);
     
     return (
@@ -88,6 +90,37 @@ const AgendaPage: React.FC = () => {
               )}
             </div>
           </div>
+
+          {/* Feedback section for past trainings */}
+          {isPast && (
+            <div className="mt-6 pt-6 border-t border-blue-200">
+              <div className="mb-4">
+                <h4 className="text-lg font-semibold text-blue-900 mb-2 flex items-center">
+                  <MessageSquare className="mr-2 h-5 w-5" />
+                  Feedback do Treino
+                </h4>
+              </div>
+              
+              <FeedbackList 
+                targetType="training" 
+                targetId={training.id} 
+              />
+              
+              {!isCoach && (
+                <div className="mt-4">
+                  <FeedbackForm
+                    targetType="training"
+                    targetId={training.id}
+                    targetTitle={`Treino - ${capitalize(dayOfWeek)}, ${date}`}
+                    onFeedbackSubmitted={() => {
+                      // Refresh feedback list
+                      fetchFeedback('training', training.id);
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
     );
@@ -95,21 +128,7 @@ const AgendaPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 font-inter">
-      <Header 
-        title="Agenda" 
-        rightElement={
-          isCoach ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate('/add')}
-              className="text-white hover:bg-white/20"
-            >
-              <Plus className="h-5 w-5" />
-            </Button>
-          ) : undefined
-        }
-      />
+      <Header title="Agenda" />
       
       <div className="p-6 pb-32 space-y-6 max-w-4xl mx-auto min-h-screen">
         <Tabs defaultValue="games" className="w-full">
@@ -163,7 +182,7 @@ const AgendaPage: React.FC = () => {
                 <h2 className="text-2xl font-bold text-white mb-4">Próximos Treinos</h2>
                 <div className="space-y-4">
                   {upcomingTrainings.map(training => 
-                    renderTrainingCard(training)
+                    renderTrainingCard(training, false)
                   )}
                 </div>
               </div>
@@ -175,7 +194,7 @@ const AgendaPage: React.FC = () => {
                 <h2 className="text-2xl font-bold text-white mb-4">Treinos Passados</h2>
                 <div className="space-y-4">
                   {pastTrainings.map(training => 
-                    renderTrainingCard(training)
+                    renderTrainingCard(training, true)
                   )}
                 </div>
               </div>
@@ -191,17 +210,6 @@ const AgendaPage: React.FC = () => {
           </TabsContent>
         </Tabs>
       </div>
-
-      {/* Fixed Add Button for Coaches */}
-      {isCoach && (
-        <Button
-          onClick={() => navigate('/add')}
-          className="fixed bottom-24 right-6 w-14 h-14 rounded-full bg-gradient-to-br from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 shadow-lg z-10"
-          size="icon"
-        >
-          <Plus className="h-6 w-6 text-white" />
-        </Button>
-      )}
     </div>
   );
 };

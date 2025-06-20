@@ -1,9 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useData } from '@/contexts/DataContext';
-import { Star } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { Star, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
 
 interface FeedbackListProps {
   targetType: 'game' | 'training';
@@ -12,6 +16,8 @@ interface FeedbackListProps {
 
 const FeedbackList: React.FC<FeedbackListProps> = ({ targetType, targetId }) => {
   const { fetchFeedback } = useData();
+  const { user, profile } = useAuth();
+  const { toast } = useToast();
   const [feedbacks, setFeedbacks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -25,6 +31,43 @@ const FeedbackList: React.FC<FeedbackListProps> = ({ targetType, targetId }) => 
 
     loadFeedback();
   }, [targetType, targetId, fetchFeedback]);
+
+  const handleDeleteFeedback = async (feedbackId: string, feedbackUserId: string) => {
+    // Verificar se o usuário pode deletar (próprio feedback ou é coach)
+    if (user?.id !== feedbackUserId && profile?.role !== 'coach') {
+      toast({
+        title: "Erro",
+        description: "Você não tem permissão para deletar este feedback",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('feedback')
+        .delete()
+        .eq('id', feedbackId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Feedback removido",
+        description: "O feedback foi removido com sucesso"
+      });
+
+      // Recarregar feedbacks
+      const data = await fetchFeedback(targetType, targetId);
+      setFeedbacks(data);
+    } catch (error) {
+      console.error('Error deleting feedback:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível remover o feedback",
+        variant: "destructive"
+      });
+    }
+  };
 
   if (loading) {
     return (
@@ -50,54 +93,68 @@ const FeedbackList: React.FC<FeedbackListProps> = ({ targetType, targetId }) => 
       
       {feedbacks.map((feedback) => (
         <div key={feedback.id} className="bg-white rounded-lg p-4 shadow-sm border border-purple-100">
-          <div className="flex items-start space-x-3">
-            <div className="flex-shrink-0">
-              <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white font-semibold">
-                {feedback.profiles?.avatar_url ? (
-                  <img 
-                    src={feedback.profiles.avatar_url} 
-                    alt="Avatar" 
-                    className="w-full h-full rounded-full object-cover"
-                  />
-                ) : (
-                  feedback.profiles?.name?.charAt(0) || '?'
-                )}
+          <div className="flex items-start justify-between">
+            <div className="flex items-start space-x-3 flex-1">
+              <div className="flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white font-semibold">
+                  {feedback.profiles?.avatar_url ? (
+                    <img 
+                      src={feedback.profiles.avatar_url} 
+                      alt="Avatar" 
+                      className="w-full h-full rounded-full object-cover"
+                    />
+                  ) : (
+                    feedback.profiles?.name?.charAt(0) || '?'
+                  )}
+                </div>
               </div>
-            </div>
-            
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-gray-900">
-                  {feedback.profiles?.name || 'Usuário'}
+              
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-gray-900">
+                    {feedback.profiles?.name || 'Usuário'}
+                  </p>
+                  
+                  {feedback.rating && (
+                    <div className="flex items-center space-x-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          size={16}
+                          className={`${
+                            i < feedback.rating
+                              ? 'text-yellow-400 fill-current'
+                              : 'text-gray-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
+                <p className="text-sm text-gray-700 mt-1">
+                  {feedback.comment}
                 </p>
                 
-                {feedback.rating && (
-                  <div className="flex items-center space-x-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        size={16}
-                        className={`${
-                          i < feedback.rating
-                            ? 'text-yellow-400 fill-current'
-                            : 'text-gray-300'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                )}
+                <p className="text-xs text-gray-500 mt-2">
+                  {format(new Date(feedback.created_at), "dd 'de' MMMM 'às' HH:mm", {
+                    locale: ptBR
+                  })}
+                </p>
               </div>
-              
-              <p className="text-sm text-gray-700 mt-1">
-                {feedback.comment}
-              </p>
-              
-              <p className="text-xs text-gray-500 mt-2">
-                {format(new Date(feedback.created_at), "dd 'de' MMMM 'às' HH:mm", {
-                  locale: ptBR
-                })}
-              </p>
             </div>
+
+            {/* Botão de deletar - visível para o autor do feedback ou para coaches */}
+            {(user?.id === feedback.user_id || profile?.role === 'coach') && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleDeleteFeedback(feedback.id, feedback.user_id)}
+                className="text-red-500 hover:text-red-700 hover:bg-red-50 ml-2"
+              >
+                <Trash2 size={16} />
+              </Button>
+            )}
           </div>
         </div>
       ))}

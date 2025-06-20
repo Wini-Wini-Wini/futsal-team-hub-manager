@@ -61,7 +61,7 @@ const AboutPage: React.FC = () => {
                   <div className="bg-purple-200 rounded-lg py-2 mb-2">
                     <h3 className="text-lg font-bold text-purple-900">EMAIL</h3>
                   </div>
-                  <p className="font-semibold text-purple-900">FEMALEFUT@GMAIL.COM</p>
+                  <p className="font-semibold text-purple-900 break-all">FEMALEFUT@GMAIL.COM</p>
                 </div>
               </div>
             </div>
