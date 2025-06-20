@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent } from '@/components/ui/card';
@@ -154,7 +153,6 @@ const FeedbacksPage: React.FC = () => {
       <Header 
         title="Feedbacks Recebidos" 
         showBackButton={true}
-        showHomeButton={true} 
       />
       
       <main className="p-6 pb-32 max-w-4xl mx-auto">

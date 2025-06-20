@@ -114,7 +114,7 @@ const AgendaPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 font-inter">
-      <Header title="Agenda" />
+      <Header title="Agenda" showBackButton={true} />
       
       <div className="pt-20 p-6 pb-32 space-y-6 max-w-4xl mx-auto min-h-screen">
         <Tabs defaultValue="games" className="w-full">

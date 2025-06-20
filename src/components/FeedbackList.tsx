@@ -14,23 +14,61 @@ interface FeedbackListProps {
   targetId: string;
 }
 
+interface FeedbackWithProfile {
+  id: string;
+  comment: string;
+  rating: number;
+  created_at: string;
+  user_id: string;
+  profiles: {
+    name: string;
+    avatar_url?: string;
+  } | null;
+}
+
 const FeedbackList: React.FC<FeedbackListProps> = ({ targetType, targetId }) => {
-  const { fetchFeedback } = useData();
   const { user, profile } = useAuth();
   const { toast } = useToast();
-  const [feedbacks, setFeedbacks] = useState<any[]>([]);
+  const [feedbacks, setFeedbacks] = useState<FeedbackWithProfile[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadFeedback = async () => {
-      setLoading(true);
-      const data = await fetchFeedback(targetType, targetId);
-      setFeedbacks(data);
-      setLoading(false);
-    };
+  const loadFeedback = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('feedback')
+        .select(`
+          id,
+          comment,
+          rating,
+          created_at,
+          user_id,
+          profiles:user_id (
+            name,
+            avatar_url
+          )
+        `)
+        .eq('target_type', targetType)
+        .eq('target_id', targetId)
+        .order('created_at', { ascending: false });
 
+      if (error) {
+        console.error('Error fetching feedback:', error);
+        setFeedbacks([]);
+      } else {
+        setFeedbacks(data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching feedback:', error);
+      setFeedbacks([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     loadFeedback();
-  }, [targetType, targetId, fetchFeedback]);
+  }, [targetType, targetId]);
 
   const handleDeleteFeedback = async (feedbackId: string, feedbackUserId: string) => {
     // Verificar se o usuário pode deletar (próprio feedback ou é coach)
@@ -57,8 +95,7 @@ const FeedbackList: React.FC<FeedbackListProps> = ({ targetType, targetId }) => 
       });
 
       // Recarregar feedbacks
-      const data = await fetchFeedback(targetType, targetId);
-      setFeedbacks(data);
+      loadFeedback();
     } catch (error) {
       console.error('Error deleting feedback:', error);
       toast({
@@ -104,7 +141,7 @@ const FeedbackList: React.FC<FeedbackListProps> = ({ targetType, targetId }) => 
                       className="w-full h-full rounded-full object-cover"
                     />
                   ) : (
-                    feedback.profiles?.name?.charAt(0) || '?'
+                    feedback.profiles?.name?.charAt(0)?.toUpperCase() || '?'
                   )}
                 </div>
               </div>
@@ -112,7 +149,7 @@ const FeedbackList: React.FC<FeedbackListProps> = ({ targetType, targetId }) => 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-medium text-gray-900">
-                    {feedback.profiles?.name || 'Usuário'}
+                    {feedback.profiles?.name || 'Usuário desconhecido'}
                   </p>
                   
                   {feedback.rating && (

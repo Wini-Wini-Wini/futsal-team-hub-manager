@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -163,7 +164,6 @@ const ProfilePage: React.FC = () => {
       <Header 
         title="Meu Perfil" 
         showBackButton={true}
-        showHomeButton={true} 
       />
       
       <main className="p-6 pb-32 max-w-4xl mx-auto">
