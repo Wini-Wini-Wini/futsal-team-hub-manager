@@ -96,23 +96,9 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 font-inter">
-      <Header 
-        title="Início" 
-        rightElement={
-          isCoach ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate('/add')}
-              className="text-white hover:bg-white/20"
-            >
-              <Plus className="h-5 w-5" />
-            </Button>
-          ) : undefined
-        }
-      />
+      <Header title="Início" />
       
-      <div className="p-6 pb-32 space-y-6 max-w-4xl mx-auto min-h-screen">
+      <div className="pt-20 p-6 pb-32 space-y-6 max-w-4xl mx-auto min-h-screen">
         {/* Welcome Section */}
         <Card className="bg-gradient-to-r from-white to-purple-50 border-0 shadow-lg">
           <CardContent className="p-6">
