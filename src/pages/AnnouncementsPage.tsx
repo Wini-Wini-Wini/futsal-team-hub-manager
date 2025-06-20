@@ -55,23 +55,9 @@ const AnnouncementsPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 font-inter">
-      <Header 
-        title="Avisos" 
-        rightElement={
-          isCoach ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate('/add?tab=2')}
-              className="text-white hover:bg-white/20"
-            >
-              <Plus className="h-5 w-5" />
-            </Button>
-          ) : undefined
-        }
-      />
+      <Header title="Avisos" />
       
-      <div className="p-6 pb-32 space-y-4 max-w-4xl mx-auto min-h-screen">
+      <div className="pt-20 p-6 pb-32 space-y-4 max-w-4xl mx-auto min-h-screen">
         {announcements.length === 0 ? (
           <Card className="bg-gradient-to-r from-white to-purple-50 border-0 shadow-lg">
             <CardContent className="p-8 text-center">
