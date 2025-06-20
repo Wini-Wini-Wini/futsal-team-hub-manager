@@ -9,7 +9,6 @@ import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useAuth } from '@/contexts/AuthContext';
 import { Clock, MapPin, Shirt, MessageSquare } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import FeedbackForm from '@/components/FeedbackForm';
 import FeedbackList from '@/components/FeedbackList';
@@ -76,19 +75,6 @@ const AgendaPage: React.FC = () => {
                 )}
               </div>
             </div>
-            
-            <div className="flex flex-col space-y-2">
-              {isCoach && (
-                <Button 
-                  variant="outline"
-                  size="sm"
-                  className="text-blue-600 border-blue-300 hover:bg-blue-50 hover:border-blue-400"
-                  onClick={() => navigate(`/edit-training/${training.id}`)}
-                >
-                  Editar
-                </Button>
-              )}
-            </div>
           </div>
 
           {/* Feedback section for past trainings */}
@@ -130,7 +116,7 @@ const AgendaPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 font-inter">
       <Header title="Agenda" />
       
-      <div className="p-6 pb-32 space-y-6 max-w-4xl mx-auto min-h-screen">
+      <div className="pt-20 p-6 pb-32 space-y-6 max-w-4xl mx-auto min-h-screen">
         <Tabs defaultValue="games" className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-white/10 backdrop-blur-sm">
             <TabsTrigger value="games" className="text-white data-[state=active]:bg-white data-[state=active]:text-purple-900">

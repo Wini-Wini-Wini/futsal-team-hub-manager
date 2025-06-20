@@ -20,7 +20,7 @@ const Header: React.FC<HeaderProps> = ({
   const navigate = useNavigate();
 
   return (
-    <header className="bg-futsal-primary text-white py-4 px-4 flex items-center">
+    <header className="fixed top-0 left-0 right-0 bg-futsal-primary text-white py-4 px-4 flex items-center z-50 max-w-[480px] mx-auto">
       {showBackButton && (
         <button 
           onClick={() => navigate(-1)}

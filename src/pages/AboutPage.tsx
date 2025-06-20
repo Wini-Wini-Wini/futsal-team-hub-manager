@@ -8,7 +8,7 @@ const AboutPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 font-inter">
       <Header title="Sobre" />
       
-      <div className="p-6 pb-32 space-y-6 max-w-4xl mx-auto">
+      <div className="pt-20 p-6 pb-32 space-y-6 max-w-4xl mx-auto">
         <Card className="bg-gradient-to-r from-white to-purple-50 border-0 shadow-lg">
           <CardContent className="p-6">
             <div className="text-center mb-6">
@@ -61,7 +61,7 @@ const AboutPage: React.FC = () => {
                   <div className="bg-purple-200 rounded-lg py-2 mb-2">
                     <h3 className="text-lg font-bold text-purple-900">EMAIL</h3>
                   </div>
-                  <p className="font-semibold text-purple-900 break-all">FEMALEFUT@GMAIL.COM</p>
+                  <p className="font-semibold text-purple-900 text-sm break-words">FEMALEFUT@GMAIL.COM</p>
                 </div>
               </div>
             </div>

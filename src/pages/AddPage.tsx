@@ -323,7 +323,7 @@ const AddPage = () => {
           showBackButton={true}
           showHomeButton={true}
         />
-        <div className="flex justify-center items-center h-64">
+        <div className="pt-20 flex justify-center items-center h-64">
           <Loader2 className="h-8 w-8 animate-spin text-purple-300" />
         </div>
       </div>
@@ -338,7 +338,7 @@ const AddPage = () => {
         showHomeButton={true}
       />
       
-      <div className="px-6 py-4">
+      <div className="pt-20 px-6 py-4 pb-32">
         <Card className="bg-gradient-to-br from-white to-purple-50 border-0 shadow-lg">
           <CardContent className="p-6">
             <Tabs value={`${activeTab}`} onValueChange={(value) => setActiveTab(parseInt(value))} className="w-full">
