@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useData } from '@/contexts/DataContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -139,17 +138,17 @@ const FeedbackList: React.FC<FeedbackListProps> = ({ targetType, targetId }) => 
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full overflow-hidden">
       <h3 className="text-lg font-semibold text-purple-800 mb-4">
         Feedbacks ({feedbacks.length})
       </h3>
       
       {feedbacks.map((feedback) => (
-        <div key={feedback.id} className="bg-white rounded-lg p-4 shadow-sm border border-purple-100">
-          <div className="flex items-start justify-between gap-2">
-            <div className="flex items-start space-x-3 flex-1 min-w-0">
+        <div key={feedback.id} className="bg-white rounded-lg p-3 sm:p-4 shadow-sm border border-purple-100 w-full">
+          <div className="flex items-start justify-between gap-2 w-full">
+            <div className="flex items-start space-x-2 sm:space-x-3 flex-1 min-w-0 overflow-hidden">
               <div className="flex-shrink-0">
-                <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white font-semibold">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-purple-600 flex items-center justify-center text-white font-semibold text-sm">
                   {feedback.profiles?.avatar_url ? (
                     <img 
                       src={feedback.profiles.avatar_url} 
@@ -162,30 +161,32 @@ const FeedbackList: React.FC<FeedbackListProps> = ({ targetType, targetId }) => 
                 </div>
               </div>
               
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-                  <p className="text-sm font-medium text-gray-900 truncate">
-                    {feedback.profiles?.name || 'Usuário desconhecido'}
-                  </p>
-                  
-                  {feedback.rating && (
-                    <div className="flex items-center space-x-1 flex-shrink-0">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          size={14}
-                          className={`${
-                            i < feedback.rating
-                              ? 'text-yellow-400 fill-current'
-                              : 'text-gray-300'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  )}
+              <div className="flex-1 min-w-0 overflow-hidden">
+                <div className="flex flex-col space-y-2 mb-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {feedback.profiles?.name || 'Usuário desconhecido'}
+                    </p>
+                    
+                    {feedback.rating && (
+                      <div className="flex items-center space-x-1 flex-shrink-0">
+                        {[...Array(5)].map((_, i) => (
+                          <Star
+                            key={i}
+                            size={12}
+                            className={`${
+                              i < feedback.rating
+                                ? 'text-yellow-400 fill-current'
+                                : 'text-gray-300'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 
-                <p className="text-sm text-gray-700 mt-1 break-words">
+                <p className="text-sm text-gray-700 mt-1 break-words overflow-wrap-anywhere hyphens-auto">
                   {feedback.comment}
                 </p>
                 
@@ -203,9 +204,9 @@ const FeedbackList: React.FC<FeedbackListProps> = ({ targetType, targetId }) => 
                 variant="ghost"
                 size="sm"
                 onClick={() => handleDeleteFeedback(feedback.id, feedback.user_id)}
-                className="text-red-500 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
+                className="text-red-500 hover:text-red-700 hover:bg-red-50 flex-shrink-0 p-1 h-8 w-8"
               >
-                <Trash2 size={14} />
+                <Trash2 size={12} />
               </Button>
             )}
           </div>

@@ -155,10 +155,10 @@ const FeedbacksPage: React.FC = () => {
         showBackButton={true}
       />
       
-      <main className="p-6 pb-32 max-w-4xl mx-auto">
+      <main className="pt-20 p-4 pb-32 max-w-4xl mx-auto">
         <Card className="bg-gradient-to-br from-white to-purple-50 border-0 shadow-lg">
-          <CardContent className="p-6">
-            <div className="space-y-4">
+          <CardContent className="p-4 sm:p-6">
+            <div className="space-y-4 w-full overflow-hidden">
               <div className="flex items-center space-x-2 mb-6">
                 <MessageSquare className="h-6 w-6 text-purple-600" />
                 <h2 className="text-xl font-semibold text-purple-900">
@@ -179,28 +179,28 @@ const FeedbacksPage: React.FC = () => {
                   </p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-4 w-full overflow-hidden">
                   {feedbacks.map((feedback) => (
-                    <div key={feedback.id} className="bg-white rounded-lg p-6 shadow-sm border border-purple-100">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start space-x-4 flex-1">
+                    <div key={feedback.id} className="bg-white rounded-lg p-4 sm:p-6 shadow-sm border border-purple-100 w-full">
+                      <div className="flex items-start justify-between w-full">
+                        <div className="flex items-start space-x-3 sm:space-x-4 flex-1 min-w-0 overflow-hidden">
                           <div className="flex-shrink-0">
-                            <div className="w-12 h-12 rounded-full bg-purple-600 flex items-center justify-center text-white font-semibold text-lg">
+                            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-purple-600 flex items-center justify-center text-white font-semibold text-sm sm:text-lg">
                               {feedback.profiles?.name?.charAt(0) || '?'}
                             </div>
                           </div>
                           
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-3">
-                              <p className="text-lg font-semibold text-gray-900">
+                          <div className="flex-1 min-w-0 overflow-hidden">
+                            <div className="flex items-center justify-between mb-3 gap-2">
+                              <p className="text-base sm:text-lg font-semibold text-gray-900 truncate">
                                 {feedback.profiles?.name || 'Usuário'}
                               </p>
                               
-                              <div className="flex items-center space-x-1">
+                              <div className="flex items-center space-x-1 flex-shrink-0">
                                 {[...Array(5)].map((_, i) => (
                                   <div
                                     key={i}
-                                    className={`w-4 h-4 rounded-full ${
+                                    className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full ${
                                       i < feedback.rating
                                         ? 'bg-yellow-400'
                                         : 'bg-gray-300'
@@ -212,16 +212,16 @@ const FeedbacksPage: React.FC = () => {
 
                             {/* Informação sobre qual jogo/treino */}
                             <div className="mb-3">
-                              <span className="inline-block bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
+                              <span className="inline-block bg-purple-100 text-purple-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium break-words">
                                 {getTargetInfo(feedback)}
                               </span>
                             </div>
                             
-                            <p className="text-gray-700 mb-4 leading-relaxed">
+                            <p className="text-sm sm:text-base text-gray-700 mb-4 leading-relaxed break-words overflow-wrap-anywhere hyphens-auto">
                               {feedback.comment}
                             </p>
                             
-                            <div className="flex items-center justify-between text-sm text-gray-500">
+                            <div className="flex items-center justify-between text-xs sm:text-sm text-gray-500">
                               <span>
                                 {new Date(feedback.created_at).toLocaleDateString('pt-BR', {
                                   day: '2-digit',
@@ -241,9 +241,9 @@ const FeedbacksPage: React.FC = () => {
                             variant="ghost"
                             size="sm"
                             onClick={() => handleDeleteFeedback(feedback.id, feedback.user_id)}
-                            className="text-red-500 hover:text-red-700 hover:bg-red-50 ml-4"
+                            className="text-red-500 hover:text-red-700 hover:bg-red-50 ml-2 sm:ml-4 flex-shrink-0 p-1 h-8 w-8"
                           >
-                            <Trash2 size={16} />
+                            <Trash2 size={14} />
                           </Button>
                         )}
                       </div>
