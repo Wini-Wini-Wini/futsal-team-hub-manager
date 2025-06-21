@@ -50,7 +50,8 @@ const AboutPage: React.FC = () => {
                   </p>
                 </div>
               </div>
-            </CardContent>
+            </div>
+          </CardContent>
         </Card>
 
         <Card className="bg-gradient-to-r from-white to-purple-50 border-0 shadow-lg mb-6">
