@@ -41,12 +41,12 @@ const LoginPage: React.FC = () => {
     setIsLoading(true);
     
     try {
-      const { success, error } = await login(email, password, role);
+      const { success, error } = await login(email, password);
       
       if (success) {
         toast({
           title: "Login realizado",
-          description: `Bem-vindo de volta, ${role === 'coach' ? 'Colaborador(a)' : 'Atleta'}!`,
+          description: `Bem-vindo de volta!`,
         });
         navigate('/');
       } else {
@@ -164,23 +164,6 @@ const LoginPage: React.FC = () => {
               <a href="#" className="text-white underline text-sm">
                 Esqueceu sua senha?
               </a>
-            </div>
-
-            <div className="mb-6 mt-4">
-              <RadioGroup 
-                value={role} 
-                onValueChange={(value) => setRole(value as UserRole)}
-                className="flex flex-col space-y-3"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="coach" id="coach" className="bg-[#1A1F2C] border-[#1A1F2C]" />
-                  <label htmlFor="coach" className="text-white text-lg">COLABORADOR(A)</label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="player" id="player" className="bg-[#1A1F2C] border-[#1A1F2C]" />
-                  <label htmlFor="player" className="text-white text-lg">ALUNA</label>
-                </div>
-              </RadioGroup>
             </div>
           </div>
           
