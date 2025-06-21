@@ -182,7 +182,7 @@ const RegisterPage: React.FC = () => {
                     onChange={(e) => setRole(e.target.value as UserRole)}
                     className="w-full h-10 px-3 py-2 border-0 rounded bg-white mt-2"
                   >
-                    <option value="coach">TREINADOR(A)</option>
+                    <option value="coach">COLABORADOR(A)</option>
                     <option value="player">ATLETA</option>
                   </select>
                 </div>

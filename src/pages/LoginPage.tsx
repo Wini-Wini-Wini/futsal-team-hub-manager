@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -45,7 +46,7 @@ const LoginPage: React.FC = () => {
       if (success) {
         toast({
           title: "Login realizado",
-          description: `Bem-vindo de volta, ${role === 'coach' ? 'Treinador(a)' : 'Atleta'}!`,
+          description: `Bem-vindo de volta, ${role === 'coach' ? 'Colaborador(a)' : 'Atleta'}!`,
         });
         navigate('/');
       } else {
@@ -173,7 +174,7 @@ const LoginPage: React.FC = () => {
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="coach" id="coach" className="bg-[#1A1F2C] border-[#1A1F2C]" />
-                  <label htmlFor="coach" className="text-white text-lg">TREINADOR(A)</label>
+                  <label htmlFor="coach" className="text-white text-lg">COLABORADOR(A)</label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="player" id="player" className="bg-[#1A1F2C] border-[#1A1F2C]" />
