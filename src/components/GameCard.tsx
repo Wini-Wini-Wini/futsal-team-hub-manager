@@ -61,84 +61,84 @@ const GameCard: React.FC<GameCardProps> = ({ game, showResult = false }) => {
   return (
     <div className="space-y-4">
       <Card className="overflow-hidden shadow-lg border-0 bg-gradient-to-br from-white to-purple-50 hover:shadow-xl transition-all duration-300">
-        <CardContent className="p-6">
-          <div className="flex justify-between items-start mb-4">
-            <div className="flex-1">
-              <h3 className="font-bold text-xl text-gray-900 mb-2">
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-4">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-lg sm:text-xl text-gray-900 mb-2 break-words">
                 {capitalize(dayOfWeek)}, {date}
               </h3>
               
               {game.opponent && (
-                <div className="flex items-center justify-center space-x-4 mb-4 p-4 bg-purple-100 rounded-lg">
-                  <div className="text-center">
+                <div className="flex items-center justify-center space-x-2 sm:space-x-4 mb-4 p-3 sm:p-4 bg-purple-100 rounded-lg">
+                  <div className="text-center flex-1 min-w-0">
                     {game.home_team_logo ? (
-                      <img src={game.home_team_logo} alt="Casa" className="w-12 h-12 mx-auto mb-2 object-contain" />
+                      <img src={game.home_team_logo} alt="Casa" className="w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-2 object-contain" />
                     ) : (
-                      <div className="w-12 h-12 mx-auto mb-2 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                      <div className="w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-2 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base">
                         C
                       </div>
                     )}
-                    <p className="text-sm font-medium text-purple-800">Casa</p>
+                    <p className="text-xs sm:text-sm font-medium text-purple-800">Casa</p>
                     {showResult && hasResult && (
-                      <p className="text-2xl font-bold text-purple-900">{game.home_score}</p>
+                      <p className="text-lg sm:text-2xl font-bold text-purple-900">{game.home_score}</p>
                     )}
                   </div>
                   
-                  <div className="text-center">
-                    <p className="text-lg font-bold text-purple-700">VS</p>
+                  <div className="text-center flex-shrink-0">
+                    <p className="text-sm sm:text-lg font-bold text-purple-700">VS</p>
                   </div>
                   
-                  <div className="text-center">
+                  <div className="text-center flex-1 min-w-0">
                     {game.away_team_logo ? (
-                      <img src={game.away_team_logo} alt={game.opponent} className="w-12 h-12 mx-auto mb-2 object-contain" />
+                      <img src={game.away_team_logo} alt={game.opponent} className="w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-2 object-contain" />
                     ) : (
-                      <div className="w-12 h-12 mx-auto mb-2 bg-red-600 rounded-full flex items-center justify-center text-white font-bold">
+                      <div className="w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-2 bg-red-600 rounded-full flex items-center justify-center text-white font-bold text-sm sm:text-base">
                         {game.opponent.charAt(0)}
                       </div>
                     )}
-                    <p className="text-sm font-medium text-purple-800">{game.opponent}</p>
+                    <p className="text-xs sm:text-sm font-medium text-purple-800 truncate">{game.opponent}</p>
                     {showResult && hasResult && (
-                      <p className="text-2xl font-bold text-purple-900">{game.away_score}</p>
+                      <p className="text-lg sm:text-2xl font-bold text-purple-900">{game.away_score}</p>
                     )}
                   </div>
                 </div>
               )}
               
               <div className="space-y-3">
-                <div className="flex items-center text-purple-700">
-                  <MapPin className="mr-3 h-5 w-5" />
-                  <span className="font-medium">{game.location}</span>
+                <div className="flex items-start text-purple-700">
+                  <MapPin className="mr-3 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 mt-0.5" />
+                  <span className="font-medium text-sm sm:text-base break-words">{game.location}</span>
                 </div>
                 <div className="flex items-center text-purple-700">
-                  <Clock className="mr-3 h-5 w-5" />
-                  <span className="font-medium">{game.time}</span>
+                  <Clock className="mr-3 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                  <span className="font-medium text-sm sm:text-base">{game.time}</span>
                 </div>
                 {game.uniform && (
                   <div className="flex items-center text-purple-700">
-                    <Shirt className="mr-3 h-5 w-5" />
-                    <span className="font-medium">Uniforme {game.uniform}</span>
+                    <Shirt className="mr-3 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                    <span className="font-medium text-sm sm:text-base">Uniforme {game.uniform}</span>
                   </div>
                 )}
               </div>
             </div>
             
-            <div className="flex flex-col space-y-2">
+            <div className="flex flex-col space-y-2 flex-shrink-0">
               {isCoach && (
                 <Button 
                   variant="outline"
                   size="sm"
-                  className="text-purple-600 border-purple-300 hover:bg-purple-50 hover:border-purple-400"
+                  className="text-purple-600 border-purple-300 hover:bg-purple-50 hover:border-purple-400 text-xs sm:text-sm"
                   onClick={() => navigate(`/edit-game/${game.id}`)}
                 >
-                  <Edit className="mr-2 h-4 w-4" />
+                  <Edit className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                   Editar
                 </Button>
               )}
               
               {showResult && (
-                <div className="flex items-center text-orange-600 bg-orange-50 px-3 py-1 rounded-full">
-                  <Trophy className="mr-2 h-4 w-4" />
-                  <span className="text-sm font-medium">Finalizado</span>
+                <div className="flex items-center text-orange-600 bg-orange-50 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm">
+                  <Trophy className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
+                  <span className="font-medium whitespace-nowrap">Finalizado</span>
                 </div>
               )}
             </div>
@@ -151,14 +151,14 @@ const GameCard: React.FC<GameCardProps> = ({ game, showResult = false }) => {
                 variant="outline"
                 size="sm"
                 onClick={() => setShowFeedback(!showFeedback)}
-                className="text-purple-600 border-purple-300 hover:bg-purple-50 hover:border-purple-400 w-full"
+                className="text-purple-600 border-purple-300 hover:bg-purple-50 hover:border-purple-400 w-full text-xs sm:text-sm"
               >
-                <MessageCircle className="mr-2 h-4 w-4" />
-                {showFeedback ? 'Ocultar Feedback' : 'Ver/Dar Feedback'}
+                <MessageCircle className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="truncate">{showFeedback ? 'Ocultar Feedback' : 'Ver/Dar Feedback'}</span>
                 {showFeedback ? (
-                  <ChevronUp className="ml-2 h-4 w-4" />
+                  <ChevronUp className="ml-2 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                 ) : (
-                  <ChevronDown className="ml-2 h-4 w-4" />
+                  <ChevronDown className="ml-2 h-3 w-3 sm:h-4 sm:w-4 flex-shrink-0" />
                 )}
               </Button>
             </div>

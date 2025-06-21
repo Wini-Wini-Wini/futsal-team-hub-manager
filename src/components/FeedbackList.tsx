@@ -67,8 +67,8 @@ const FeedbackList: React.FC<FeedbackListProps> = ({ targetType, targetId }) => 
         console.error('Error fetching profiles:', profilesError);
       }
 
-      // Combine feedback with profile data
-      const feedbackWithProfiles = feedbackData.map(feedback => ({
+      // Combine feedback with profile data - ensuring proper typing
+      const feedbackWithProfiles: FeedbackWithProfile[] = feedbackData.map(feedback => ({
         ...feedback,
         profiles: profilesData?.find(p => p.id === feedback.user_id) || { name: 'Usuário desconhecido' }
       }));
@@ -146,8 +146,8 @@ const FeedbackList: React.FC<FeedbackListProps> = ({ targetType, targetId }) => 
       
       {feedbacks.map((feedback) => (
         <div key={feedback.id} className="bg-white rounded-lg p-4 shadow-sm border border-purple-100">
-          <div className="flex items-start justify-between">
-            <div className="flex items-start space-x-3 flex-1">
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-start space-x-3 flex-1 min-w-0">
               <div className="flex-shrink-0">
                 <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-white font-semibold">
                   {feedback.profiles?.avatar_url ? (
@@ -163,17 +163,17 @@ const FeedbackList: React.FC<FeedbackListProps> = ({ targetType, targetId }) => 
               </div>
               
               <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-gray-900">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                  <p className="text-sm font-medium text-gray-900 truncate">
                     {feedback.profiles?.name || 'Usuário desconhecido'}
                   </p>
                   
                   {feedback.rating && (
-                    <div className="flex items-center space-x-1">
+                    <div className="flex items-center space-x-1 flex-shrink-0">
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
-                          size={16}
+                          size={14}
                           className={`${
                             i < feedback.rating
                               ? 'text-yellow-400 fill-current'
@@ -185,7 +185,7 @@ const FeedbackList: React.FC<FeedbackListProps> = ({ targetType, targetId }) => 
                   )}
                 </div>
                 
-                <p className="text-sm text-gray-700 mt-1">
+                <p className="text-sm text-gray-700 mt-1 break-words">
                   {feedback.comment}
                 </p>
                 
@@ -203,9 +203,9 @@ const FeedbackList: React.FC<FeedbackListProps> = ({ targetType, targetId }) => 
                 variant="ghost"
                 size="sm"
                 onClick={() => handleDeleteFeedback(feedback.id, feedback.user_id)}
-                className="text-red-500 hover:text-red-700 hover:bg-red-50 ml-2"
+                className="text-red-500 hover:text-red-700 hover:bg-red-50 flex-shrink-0"
               >
-                <Trash2 size={16} />
+                <Trash2 size={14} />
               </Button>
             )}
           </div>
