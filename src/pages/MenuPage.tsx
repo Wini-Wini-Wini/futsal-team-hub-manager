@@ -23,7 +23,7 @@ const MenuPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 font-inter">
       <Header title="Menu" />
       
-      <main className="p-6 pb-24 max-w-4xl mx-auto">
+      <main className="pt-24 p-6 pb-24 max-w-4xl mx-auto">
         <Card className="bg-gradient-to-br from-white to-purple-50 border-0 shadow-lg mb-6">
           <CardContent className="p-6">
             {/* User Info Section */}
@@ -43,7 +43,7 @@ const MenuPage: React.FC = () => {
                   {profile?.name || 'Usuário'}
                 </h2>
                 <p className="text-purple-600 font-medium capitalize">
-                  {profile?.role === 'coach' ? 'Treinador(a)' : 'Atleta'}
+                  {profile?.role === 'coach' ? 'Colaborador(a)' : 'Atleta'}
                 </p>
               </div>
             </div>

@@ -42,7 +42,7 @@ const PostsList: React.FC = () => {
             content: post.content,
             media_url: post.media_url,
             created_at: post.created_at,
-            author_name: profileData?.name || 'Treinador',
+            author_name: profileData?.name || 'Colaborador',
             created_by: post.created_by
           });
         }
@@ -85,7 +85,7 @@ const PostsList: React.FC = () => {
               content: post.content,
               media_url: post.media_url,
               created_at: post.created_at,
-              author_name: profileData?.name || 'Treinador',
+              author_name: profileData?.name || 'Colaborador',
               created_by: post.created_by
             };
             

@@ -7,14 +7,34 @@ import { ptBR } from 'date-fns/locale';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
-import { Plus } from 'lucide-react';
+import { Plus, Edit, Trash2, MoreVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const AnnouncementsPage: React.FC = () => {
   const { announcements, fetchAnnouncements } = useData();
   const { profile } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchAnnouncements();
@@ -51,13 +71,38 @@ const AnnouncementsPage: React.FC = () => {
     }
   };
 
+  const handleDeleteAnnouncement = async (announcementId: string) => {
+    try {
+      const { error } = await supabase
+        .from('announcements')
+        .delete()
+        .eq('id', announcementId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Aviso excluído",
+        description: "O aviso foi excluído com sucesso"
+      });
+
+      fetchAnnouncements();
+    } catch (error) {
+      console.error('Error deleting announcement:', error);
+      toast({
+        title: "Erro",
+        description: "Ocorreu um erro ao excluir o aviso",
+        variant: "destructive"
+      });
+    }
+  };
+
   const isCoach = profile?.role === 'coach';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 font-inter">
       <Header title="Avisos" />
       
-      <div className="pt-20 p-6 pb-32 space-y-4 max-w-4xl mx-auto min-h-screen">
+      <div className="pt-24 p-6 pb-32 space-y-4 max-w-4xl mx-auto min-h-screen">
         {announcements.length === 0 ? (
           <Card className="bg-gradient-to-r from-white to-purple-50 border-0 shadow-lg">
             <CardContent className="p-8 text-center">
@@ -94,6 +139,53 @@ const AnnouncementsPage: React.FC = () => {
                       </span>
                     </div>
                   </div>
+                  
+                  {isCoach && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-purple-600 hover:bg-purple-100">
+                          <MoreVertical size={18} />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem 
+                          onClick={() => navigate(`/edit-announcement/${announcement.id}`)}
+                          className="cursor-pointer"
+                        >
+                          <Edit className="mr-2 h-4 w-4" />
+                          Editar
+                        </DropdownMenuItem>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem 
+                              onSelect={(e) => e.preventDefault()}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 cursor-pointer"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Excluir
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Excluir aviso</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Tem certeza que deseja excluir este aviso? Esta ação não pode ser desfeita.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={() => handleDeleteAnnouncement(announcement.id)}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Excluir
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
               </CardContent>
             </Card>

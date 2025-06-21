@@ -132,7 +132,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onDelete }) => {
               </Avatar>
               
               <div className="ml-4">
-                <p className="font-bold text-gray-900">{authorProfile?.name || post.author_name || 'Treinador'}</p>
+                <p className="font-bold text-gray-900">{authorProfile?.name || post.author_name || 'Colaborador'}</p>
                 <p className="text-sm text-purple-600 font-medium">{formatDate(post.created_at)}</p>
               </div>
             </div>
