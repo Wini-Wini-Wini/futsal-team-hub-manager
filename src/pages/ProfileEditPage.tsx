@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -124,7 +123,6 @@ const ProfileEditPage: React.FC = () => {
       <Header 
         title="Editar Perfil" 
         showBackButton={true}
-        showHomeButton={true} 
       />
       
       <main className="p-6 pb-32">

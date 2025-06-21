@@ -35,29 +35,45 @@ const FeedbackList: React.FC<FeedbackListProps> = ({ targetType, targetId }) => 
   const loadFeedback = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // First, get feedback data
+      const { data: feedbackData, error: feedbackError } = await supabase
         .from('feedback')
-        .select(`
-          id,
-          comment,
-          rating,
-          created_at,
-          user_id,
-          profiles:user_id (
-            name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .eq('target_type', targetType)
         .eq('target_id', targetId)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching feedback:', error);
+      if (feedbackError) {
+        console.error('Error fetching feedback:', feedbackError);
         setFeedbacks([]);
-      } else {
-        setFeedbacks(data || []);
+        return;
       }
+
+      if (!feedbackData || feedbackData.length === 0) {
+        setFeedbacks([]);
+        return;
+      }
+
+      // Get unique user IDs from feedback
+      const userIds = [...new Set(feedbackData.map(f => f.user_id))];
+
+      // Fetch profiles for these users
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, name, avatar_url')
+        .in('id', userIds);
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+      }
+
+      // Combine feedback with profile data
+      const feedbackWithProfiles = feedbackData.map(feedback => ({
+        ...feedback,
+        profiles: profilesData?.find(p => p.id === feedback.user_id) || { name: 'Usuário desconhecido' }
+      }));
+
+      setFeedbacks(feedbackWithProfiles);
     } catch (error) {
       console.error('Error fetching feedback:', error);
       setFeedbacks([]);
